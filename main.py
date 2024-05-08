@@ -19,13 +19,12 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(open ("./css/style.qss", "r").read())
         
         #Fonts
-        self.window_font = QFont("Fire code")
+        self.window_font = QFont("FiraCode")
         self.window_font.setPointSize(16)
         self.setFont(self.window_font)
         
         self.code_font = QFont("Consolas")
         self.code_font.setPointSize(16)
-        self.setFont(self.code_font)
         
         self.set_up_menu()
         self.set_up_body()
@@ -61,6 +60,10 @@ class MainWindow(QMainWindow):
         copy_action = edit_menu.addAction("Copy")
         copy_action.setShortcut("Ctrl+C")
         copy_action.triggered.connect(self.copy)
+        
+        cut_action = edit_menu.addAction("Cut")
+        cut_action.setShortcut("Ctrl+X")
+        cut_action.triggered.connect(self.cut)
     
         paste_action = edit_menu.addAction("Paste")
         paste_action.setShortcut("Ctrl+V")
@@ -157,6 +160,8 @@ class MainWindow(QMainWindow):
         self.set_new_tab(f)
             
     def save_file(self):
+        if self.tab_view.count() == 0:
+            return
         if self.current_file is None and self.tab_view.count() > 0:
             self.save_as()
         
@@ -165,26 +170,32 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"{self.current_file.name}", 2000)
         
     def save_as(self):
-        editor = self.tab_view.currentWidget()
-        if editor is None:
+        if self.tab_view.count() == 0:
             return
         file_path = QFileDialog.getSaveFileName(self,"Save As", os.getcwd()) [0]
         if file_path == '':
             self.statusBar().showMessage("Отмена", 2000)
             return
         path = Path(file_path)
-        path.write_text(editor.text())
-        self.tav_view.setTabText(self.tab_view.currentIndex(),path.name)
+        editor = self.tab_view.currentWidget()
+        path.write_text(editor.text(), encoding="utf-8")
+        self.tab_view.setTabText(self.tab_view.currentIndex(),path.name)
         self.statusBar().showMessage(f"Сохранено: {path.name}", 2000)
         self.current_file = path
         
     def copy(self):
-        editor = self.tab_view.setCurrentWidget()
+        editor = self.tab_view.currentWidget()
         if editor is not None:
-            editor.Copy()
+            editor.copy()
         
     def paste(self):
-        ...
+        editor = self.tab_view.currentWidget()
+        if editor is not None:
+            editor.paste()
+    def cut(self):
+        editor = self.tab_view.currentWidget()
+        if editor is not None:
+            editor.cut()
         
 if __name__ == '__main__':
     app = QApplication ([])
