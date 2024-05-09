@@ -169,7 +169,7 @@ QMenu::item
     background-color: #282c34;
     color: #d3d3d3;
     border: none;
-    padding: 5px;;
+    padding: 9px;;
 }
 
 QMenu::item:selected 

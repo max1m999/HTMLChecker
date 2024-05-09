@@ -15,10 +15,12 @@ class Editor(QsciScintilla):
         
         self.setFont(self.code_font)
         
+        self.setWrapMode(True)
+        
         #Стиль
         
         self.setPaper(QColor("#282c34"))
-        self.setColor(QColor("#abb2bf"))
+        self.setColor(QColor("#bbc1ca"))
 
         #EOL
         self.setEolMode(QsciScintilla.EolWindows)
@@ -28,7 +30,7 @@ class Editor(QsciScintilla):
         self.setCaretForegroundColor(QColor("#dedcdc"))
         self.setCaretLineVisible(True)
         self.setCaretWidth(2)
-        self.setCaretLineBackgroundColor(QColor("#2c313c"))
+        self.setCaretLineBackgroundColor(QColor("#455a55"))
         
         # Нумерация строк
         self.setMarginType(0, QsciScintilla.NumberMargin)
