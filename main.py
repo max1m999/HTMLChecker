@@ -5,6 +5,7 @@ from PyQt5.Qsci import *
 from PyQt5.QtGui import *
 import sys
 from pathlib import Path
+from editor import Editor
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -17,82 +18,76 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self.app_name)
         self.resize(1300,900)
         self.setStyleSheet(open ("./css/style.qss", "r").read())
-        
-        #Fonts
+        # Шрифт интерфейса
         self.window_font = QFont("FiraCode")
         self.window_font.setPointSize(16)
         self.setFont(self.window_font)
         
-        self.code_font = QFont("Consolas")
-        self.code_font.setPointSize(16)
-        
         self.set_up_menu()
-        self.set_up_body()
+        self.set_up_body() 
+        self.set_up_status_bar()
         
         self.show()
+    
+    def set_up_status_bar(self):
+        # status bar
+        stat = QStatusBar(self)
+        stat.setStyleSheet("color: #D3D3D3;")
+        self.setStatusBar(stat)
+    
+    def get_editor(self) -> QsciScintilla:
+        editor = Editor()
+        return editor
         
     def set_up_menu(self):
         menu_bar = self.menuBar()
     
-        #FileMenu
-        file_menu = menu_bar.addMenu("File")
+        # Меню Файл
+        file_menu = menu_bar.addMenu("Файл")
     
-        new_file = file_menu.addAction("New")
+        new_file = file_menu.addAction("Новый")
         new_file.setShortcut("Ctrl+N")
         new_file.triggered.connect(self.new_file)
     
-        open_file = file_menu.addAction("Open File")
+        open_file = file_menu.addAction("Открыть файл")
         open_file.setShortcut("Ctrl+O")
         open_file.triggered.connect(self.open_file)
         
         file_menu.addSeparator()
-        save_file = file_menu.addAction("Save File")
+        save_file = file_menu.addAction("Сохранить файл")
         save_file.setShortcut("Ctrl+S")
         save_file.triggered.connect(self.save_file)
         
-        save_as = file_menu.addAction("Save As")
+        save_as = file_menu.addAction("Сохранить как...")
         save_as.setShortcut("Ctrl+Shift+s")
         save_as.triggered.connect(self.save_as)
 
-        #EditMenu
-        edit_menu = menu_bar.addMenu("Edit")
+        # Меню Редактировать
+        edit_menu = menu_bar.addMenu("Редактировать")
     
-        copy_action = edit_menu.addAction("Copy")
+        copy_action = edit_menu.addAction("Копировать")
         copy_action.setShortcut("Ctrl+C")
         copy_action.triggered.connect(self.copy)
         
-        cut_action = edit_menu.addAction("Cut")
+        cut_action = edit_menu.addAction("Вырезать")
         cut_action.setShortcut("Ctrl+X")
         cut_action.triggered.connect(self.cut)
     
-        paste_action = edit_menu.addAction("Paste")
+        paste_action = edit_menu.addAction("Вставить")
         paste_action.setShortcut("Ctrl+V")
         paste_action.triggered.connect(self.paste)
     
-
-    def get_editor(self) -> QsciScintilla:
-        
-        #instance
-        editor = QsciScintilla()
-        #encoding
-        editor.setUtf8(True)
-        #Font
-        editor.setFont(self.code_font)
-
-        #EOL, Lexer добавить???
-        
-        return editor
     
     def is_binary (self, path):
-        #Checking if file is binary - that cannot be opened in text editor
+        # Checking if file is binary - that cannot be opened in text editor
         with open (path, 'rb') as f:
             return b'\0' in f.read(1024)
     
     def set_new_tab(self, path: Path, is_new_file = False):
         editor = self.get_editor()
         if is_new_file:
-            self.tab_view.addTab(editor, "untitled")
-            self.setWindowTitle("Untitled")
+            self.tab_view.addTab(editor, "Без названия")
+            self.setWindowTitle("Без названия")
             self.tab_view.setCurrentIndex(self.tab_view.count() -1)
             self.current_file = None
             return
@@ -100,14 +95,14 @@ class MainWindow(QMainWindow):
         if not path.is_file():
             return
         if self.is_binary(path):
-            self.statusBar().showMessage("Binary file!", 2000)
+            self.statusBar().showMessage("Невозможно открыть файл!", 2000)
             return
         
-        #проверка, открыт ли файл в одной из вкладок
+        # Проверка, открыт ли файл в одной из вкладок
         for i in range (self.tab_view.count()):
             if self.tab_view.tabText(i) == path.name:
                self.tab_view.setCurrentIndex(i)
-               self.current_file = path # удалить эту строку? дублируется чуть ниже?
+               self.current_file = path 
                return
                 
         self.tab_view.addTab(editor,path.name)
@@ -115,11 +110,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(path.name)
         self.current_file = path 
         self.tab_view.setCurrentIndex(self.tab_view.count()-1)
-        self.statusBar().showMessage(f"Opened {path.name}", 2000)
+        self.statusBar().showMessage(f"Открыт {path.name}", 2000)
             
 
     def set_up_body(self):
-        #Body
+        # Body
         body_frame = QFrame()
         body_frame.setFrameShape(QFrame.NoFrame)
         body_frame.setFrameShadow(QFrame.Plain)
@@ -132,27 +127,29 @@ class MainWindow(QMainWindow):
         body.setSpacing(0)
         body_frame.setLayout(body)
         
-        #Tab Widget
+        # Виджет вкладки
         self.tab_view = QTabWidget()    
         self.tab_view.setContentsMargins(0,0,0,0)
         self.tab_view.setTabsClosable(True)
         self.tab_view.setMovable(True)
         self.tab_view.setDocumentMode(True)
+        self.tab_view.tabCloseRequested.connect(self.close_tab)
         
         # split view
         self.hsplit = QSplitter(Qt.Horizontal)
         body.addWidget(self.hsplit)
         body_frame.setLayout(body)
-        self.setCentralWidget(body_frame)
         self.hsplit.addWidget(self.tab_view)
+        self.setCentralWidget(body_frame)
+        
+    def close_tab(self, index):
+        self.tab_view.removeTab(index)
         
     def new_file(self):
         self.set_new_tab(None, is_new_file=True)
         
     def open_file(self):
-        ops = QFileDialog.Options()
-        ops = QFileDialog.DontUseNativeDialog
-        new_file, _ = QFileDialog.getOpenFileName(self, "Выберите файл", "", "Все файлы (*);;HTML файлы (*.html)", options=ops)
+        new_file, _ = QFileDialog.getOpenFileName(self, "Выберите файл", "", "HTML файлы (*.html);;Все файлы (*)")
         if new_file == '':
             self.statusBar().showMessage("Отмена", 2000)
             return
@@ -172,7 +169,7 @@ class MainWindow(QMainWindow):
     def save_as(self):
         if self.tab_view.count() == 0:
             return
-        file_path = QFileDialog.getSaveFileName(self,"Save As", os.getcwd()) [0]
+        file_path = QFileDialog.getSaveFileName(self,"Сохранить как", os.getcwd()) [0]
         if file_path == '':
             self.statusBar().showMessage("Отмена", 2000)
             return
