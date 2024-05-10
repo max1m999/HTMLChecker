@@ -19,8 +19,7 @@ class MainWindow(QMainWindow):
         self.resize(1300,900)
         self.setStyleSheet(open ("./css/style.qss", "r").read())
         # Шрифт интерфейса
-        self.window_font = QFont("FiraCode")
-        self.window_font.setPointSize(16)
+        self.window_font = QFont("FiraCode", 16)
         self.setFont(self.window_font)
         
         self.set_up_menu()
@@ -30,13 +29,13 @@ class MainWindow(QMainWindow):
         self.show()
     
     def set_up_status_bar(self):
-        # status bar
+        # Строка оповещений
         stat = QStatusBar(self)
-        stat.setStyleSheet("color: #D3D3D3;")
+        stat.setStyleSheet("color: #1C9BCB; height: 25px; font: 600 15px #1C9BCB;")
         self.setStatusBar(stat)
     
-    def get_editor(self) -> QsciScintilla:
-        editor = Editor()
+    def get_editor(self, path: Path = None) -> QsciScintilla:
+        editor = Editor(self, path = path)
         return editor
         
     def set_up_menu(self):
@@ -79,39 +78,37 @@ class MainWindow(QMainWindow):
     
     
     def is_binary (self, path):
-        # Checking if file is binary - that cannot be opened in text editor
+        # Проверка на бинарный файл - не может быть открыт в редакторе
         with open (path, 'rb') as f:
             return b'\0' in f.read(1024)
     
     def set_new_tab(self, path: Path, is_new_file = False):
-        editor = self.get_editor()
+        if not is_new_file and self.is_binary(path):
+            self.statusBar().showMessage("Невозможно открыть файл!", 2000)
+            return
+        if path.is_dir():
+            return
+        editor = self.get_editor(path)
         if is_new_file:
             self.tab_view.addTab(editor, "Без названия")
             self.setWindowTitle("Без названия")
             self.tab_view.setCurrentIndex(self.tab_view.count() -1)
             self.current_file = None
-            return
-        
-        if not path.is_file():
-            return
-        if self.is_binary(path):
-            self.statusBar().showMessage("Невозможно открыть файл!", 2000)
-            return
+            return       
         
         # Проверка, открыт ли файл в одной из вкладок
         for i in range (self.tab_view.count()):
-            if self.tab_view.tabText(i) == path.name:
+            if self.tab_view.tabText(i) == path.name or self.tab_view.tabText(i) == "*"+path.name:
                self.tab_view.setCurrentIndex(i)
                self.current_file = path 
                return
                 
         self.tab_view.addTab(editor,path.name)
         editor.setText(path.read_text(encoding="utf-8"))
-        self.setWindowTitle(path.name)
+        self.setWindowTitle(f"{path.name}")
         self.current_file = path 
         self.tab_view.setCurrentIndex(self.tab_view.count()-1)
         self.statusBar().showMessage(f"Открыт {path.name}", 2000)
-            
 
     def set_up_body(self):
         # Body
@@ -134,19 +131,36 @@ class MainWindow(QMainWindow):
         self.tab_view.setMovable(True)
         self.tab_view.setDocumentMode(True)
         self.tab_view.tabCloseRequested.connect(self.close_tab)
-        
-        # split view
+                
         self.hsplit = QSplitter(Qt.Horizontal)
+        self.hsplit.addWidget(self.tab_view)  
         body.addWidget(self.hsplit)
-        body_frame.setLayout(body)
-        self.hsplit.addWidget(self.tab_view)
+        body_frame.setLayout(body)     
+                
         self.setCentralWidget(body_frame)
         
     def close_tab(self, index):
+        editor: Editor = self.tab_view.currentWidget()
+        if editor.current_file_changed:
+            dialog = self.show_dialog("Close", f"Сохранить изменения в {self.current_file.path.name}?")
+            if dialog == QMessageBox.Yes:
+                self.save_file()
         self.tab_view.removeTab(index)
+    
+    def show_dialog(self, title, msg) -> int:
+        dialog = QMessageBox(self)
+        dialog.setFont(self.font())
+        dialog.font().setPointSize(14)
+        dialog.setWindowTitle(title)
+        dialog.setWindowIcon(QIcon(":/icons/close-icon.svg"))
+        dialog.setText(msg)
+        dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        dialog.setDefaultButton(QMessageBox.No)
+        dialog.setIcon(QMessageBox.Warning)
+        return dialog.exec_()
         
     def new_file(self):
-        self.set_new_tab(None, is_new_file=True)
+        self.set_new_tab(Path("untitled"), is_new_file=True)
         
     def open_file(self):
         new_file, _ = QFileDialog.getOpenFileName(self, "Выберите файл", "", "HTML файлы (*.html);;Все файлы (*)")
@@ -165,11 +179,12 @@ class MainWindow(QMainWindow):
         editor = self.tab_view.currentWidget()
         self.current_file.write_text(editor.text())
         self.statusBar().showMessage(f"{self.current_file.name}", 2000)
+        editor.current_file_changed = False
         
     def save_as(self):
         if self.tab_view.count() == 0:
             return
-        file_path = QFileDialog.getSaveFileName(self,"Сохранить как", os.getcwd()) [0]
+        file_path = QFileDialog.getSaveFileName(self,"Сохранить как", os.getcwd(), "HTML файлы (*.html);;Все файлы (*)") [0]
         if file_path == '':
             self.statusBar().showMessage("Отмена", 2000)
             return
@@ -179,7 +194,8 @@ class MainWindow(QMainWindow):
         self.tab_view.setTabText(self.tab_view.currentIndex(),path.name)
         self.statusBar().showMessage(f"Сохранено: {path.name}", 2000)
         self.current_file = path
-        
+        editor.current_file_changed = False
+
     def copy(self):
         editor = self.tab_view.currentWidget()
         if editor is not None:
