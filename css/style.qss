@@ -4,12 +4,6 @@ QMainWindow
     color: #d3d3d3;
 }
 
-QMainWindow::titleBar 
-{ 
-    color: red;
-    background-color: blue;
-}
-
 QTabWidget 
 {
     background-color: #282c34;

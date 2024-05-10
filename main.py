@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
     def close_tab(self, index):
         editor: Editor = self.tab_view.currentWidget()
         if editor.current_file_changed:
-            dialog = self.show_dialog("Close", f"Сохранить изменения в {self.current_file.path.name}?")
+            dialog = self.show_dialog("Close", f"Сохранить изменения в {self.current_file.name}?")
             if dialog == QMessageBox.Yes:
                 self.save_file()
         self.tab_view.removeTab(index)
@@ -177,7 +177,7 @@ class MainWindow(QMainWindow):
             self.save_as()
         
         editor = self.tab_view.currentWidget()
-        self.current_file.write_text(editor.text())
+        self.current_file.write_text(editor.text(), encoding="utf-8")
         self.statusBar().showMessage(f"{self.current_file.name}", 2000)
         editor.current_file_changed = False
         
