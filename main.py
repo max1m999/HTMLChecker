@@ -11,10 +11,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.init_ui()
-        self.current_file = None
+        self.current_file = None        
         
     def init_ui(self):
-        self.app_name = "HTML CHECKER"
+        self.app_name = "HTML МАСТЕР"
         self.setWindowTitle(self.app_name)
         self.resize(1300,900)
         self.setStyleSheet(open ("./css/style.qss", "r").read())
@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         self.set_up_status_bar()
         
         self.show()
+        
     
     def set_up_status_bar(self):
         # Строка оповещений
@@ -82,7 +83,7 @@ class MainWindow(QMainWindow):
         with open (path, 'rb') as f:
             return b'\0' in f.read(1024)
     
-    def set_new_tab(self, path: Path, is_new_file = False):
+    def set_new_tab(self, path: Path, is_new_file = False, msg = 1):
         if not is_new_file and self.is_binary(path):
             self.statusBar().showMessage("Невозможно открыть файл!", 2000)
             return
@@ -90,25 +91,23 @@ class MainWindow(QMainWindow):
             return
         editor = self.get_editor(path)
         if is_new_file:
-            self.tab_view.addTab(editor, "Без названия")
-            self.setWindowTitle("Без названия")
+            self.tab_view.addTab(editor, f"{path}")
             self.tab_view.setCurrentIndex(self.tab_view.count() -1)
             self.current_file = None
             return       
         
         # Проверка, открыт ли файл в одной из вкладок
         for i in range (self.tab_view.count()):
-            if self.tab_view.tabText(i) == path.name or self.tab_view.tabText(i) == "*"+path.name:
+            if self.tab_view.tabText(i) == f"{path.absolute()}" or self.tab_view.tabText(i) == "*"+f"{path.absolute()}":
                self.tab_view.setCurrentIndex(i)
                self.current_file = path 
                return
                 
-        self.tab_view.addTab(editor,path.name)
+        self.tab_view.addTab(editor,f"{path.absolute()}")
         editor.setText(path.read_text(encoding="utf-8"))
-        self.setWindowTitle(f"{path.name}")
         self.current_file = path 
         self.tab_view.setCurrentIndex(self.tab_view.count()-1)
-        self.statusBar().showMessage(f"Открыт {path.name}", 2000)
+        if msg > 0: self.statusBar().showMessage(f"Открыт {path.name}", 2000)
 
     def set_up_body(self):
         # Body
@@ -139,11 +138,16 @@ class MainWindow(QMainWindow):
                 
         self.setCentralWidget(body_frame)
         
+    def closeEvent(self, event):
+        while self.tab_view.count() > 0:
+            self.close_tab(0)
+        
     def close_tab(self, index):
-        editor: Editor = self.tab_view.currentWidget()
-        if editor.current_file_changed:
-            dialog = self.show_dialog("Close", f"Сохранить изменения в {self.current_file.name}?")
+        if "*" in self.tab_view.tabText(index):
+            dialog = self.show_dialog("Закрыть вкладку", f"Сохранить изменения в {self.tab_view.tabText(index) [1:]}?")
             if dialog == QMessageBox.Yes:
+                self.tab_view.setCurrentIndex(index)
+                self.current_file = Path(self.tab_view.tabText(index)[1:])
                 self.save_file()
         self.tab_view.removeTab(index)
     
@@ -160,25 +164,33 @@ class MainWindow(QMainWindow):
         return dialog.exec_()
         
     def new_file(self):
-        self.set_new_tab(Path("untitled"), is_new_file=True)
+        count = 0
+        for i in range (self.tab_view.count()):
+            if "Без названия" in self.tab_view.tabText(i):
+                count+=1
+        if count > 0:
+            self.set_new_tab(Path(f"Без названия_{count}"), is_new_file=True)
+        else:
+            self.set_new_tab(Path("Без названия"), is_new_file=True)
         
     def open_file(self):
         new_file, _ = QFileDialog.getOpenFileName(self, "Выберите файл", "", "HTML файлы (*.html);;Все файлы (*)")
         if new_file == '':
             self.statusBar().showMessage("Отмена", 2000)
             return
-        f =  Path(new_file)   
+        f =  Path(new_file)
         self.set_new_tab(f)
             
     def save_file(self):
         if self.tab_view.count() == 0:
             return
-        if self.current_file is None and self.tab_view.count() > 0:
+        if (self.current_file is None or "Без названия" in f"{self.current_file}") and self.tab_view.count() > 0:
             self.save_as()
+            return
         
         editor = self.tab_view.currentWidget()
         self.current_file.write_text(editor.text(), encoding="utf-8")
-        self.statusBar().showMessage(f"{self.current_file.name}", 2000)
+        self.statusBar().showMessage(f"{self.current_file}", 2000)
         editor.current_file_changed = False
         
     def save_as(self):
@@ -191,10 +203,12 @@ class MainWindow(QMainWindow):
         path = Path(file_path)
         editor = self.tab_view.currentWidget()
         path.write_text(editor.text(), encoding="utf-8")
-        self.tab_view.setTabText(self.tab_view.currentIndex(),path.name)
-        self.statusBar().showMessage(f"Сохранено: {path.name}", 2000)
+        self.tab_view.setTabText(self.tab_view.currentIndex(),f"{path}")
+        self.statusBar().showMessage(f"Сохранено: {path}", 2000)
         self.current_file = path
         editor.current_file_changed = False
+        self.tab_view.removeTab(self.tab_view.currentIndex())
+        self.set_new_tab(path, msg = 0)
 
     def copy(self):
         editor = self.tab_view.currentWidget()

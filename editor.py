@@ -18,6 +18,7 @@ class Editor(QsciScintilla):
         self._current_file_changed = False
         self.first_launch = True
         self.textChanged.connect(self._textChanged)
+        self.linesChanged.connect(self.LineNumber)
         self.path = path
         
         # Кодировка
@@ -46,13 +47,16 @@ class Editor(QsciScintilla):
         self.setCaretLineBackgroundColor(QColor("#4d4d4d"))
         
         # Нумерация строк
-        self.setMarginType(50, QsciScintilla.NumberMargin)
-        self.setMarginWidth(0, f"{self.lines()*10}" ) # sum(1 for line in fp)
+        self.setMarginType(0, QsciScintilla.NumberMargin)
+        self.setMarginWidth(0, f"{self.lines() * 10}" )
         self.setMarginsForegroundColor(QColor("#ff888888"))
         self.setMarginsBackgroundColor(QColor("#282c34"))
         self.setMarginsFont(self.code_font)
+        
+    def LineNumber (self):
+        self.setMarginWidth(0, f"{self.lines() * 10}" )
     
-    @property #????
+    @property
     def current_file_changed(self):
         return self._current_file_changed
     
@@ -60,12 +64,10 @@ class Editor(QsciScintilla):
     def current_file_changed(self, value: bool):
         curr_index = self.main_window.tab_view.currentIndex()
         if value:
-            self.main_window.tab_view.setTabText(curr_index, "*"+self.path.name)
-            self.main_window.setWindowTitle(f"*{self.path.name}")
+            self.main_window.tab_view.setTabText(curr_index, "*"+f"{self.path}")
         else:
             if self.main_window.tab_view.tabText(curr_index).startswith("*"):
                 self.main_window.tab_view.setTabText(curr_index, self.main_window.tab_view.tabText(curr_index)[1:])
-                self.main_window.setWindowTitle(self.main_window.windowTitle()[1:])
         
         self._current_file_changed = value
     
