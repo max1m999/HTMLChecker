@@ -2,8 +2,10 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.Qsci import *
 from PyQt5.QtGui import *
-
 from pathlib import Path
+
+import keyword
+import pkgutil
 
 from typing import TYPE_CHECKING
 
@@ -40,6 +42,12 @@ class Editor(QsciScintilla):
         self.setEolMode(QsciScintilla.EolWindows)
         self.setEolVisibility(False)
         
+        # автозавершение слов
+        self.setAutoCompletionSource(QsciScintilla.AcsAll) #подключить бд
+        self.setAutoCompletionThreshold(1)
+        self.setAutoCompletionCaseSensitivity(False)
+        self.setAutoCompletionUseSingle(QsciScintilla.AcusNever)
+                            
         # caret
         self.setCaretForegroundColor(QColor("#dedcdc"))
         self.setCaretLineVisible(True)
@@ -52,9 +60,54 @@ class Editor(QsciScintilla):
         self.setMarginsForegroundColor(QColor("#ff888888"))
         self.setMarginsBackgroundColor(QColor("#282c34"))
         self.setMarginsFont(self.code_font)
+    
         
     def LineNumber (self):
         self.setMarginWidth(0, f"{self.lines() * 10}" )
+        
+    def start_analysis(self):
+        errors = []
+        # парные символы
+        errors = self.brackets_matching(errors)
+                
+        # пробелы после <
+        errors = self.wspaces(errors)
+        
+        if errors: 
+            for i in errors:
+                self.main_window.errors.addItem(f"{i}")
+                        
+        if not errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
+    
+    def brackets_matching(self, errors):
+        stack = []
+        index = 0
+        op_list = "({[<'\""
+        cl_list = ")}]>'\""
+        for i in self.text():
+            if i in op_list and not(i == "'" or i=='"') and (not stack or stack[-1] != i):
+                stack.append(i)
+            elif i in cl_list:
+                pos = cl_list.index(i)
+                if stack and (op_list[pos] == stack[-1]):
+                    stack.pop()
+                else:
+                    errors.append(f"Отсутствует парный символ  {stack[-1]}, индекс: {index}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию?
+            index += 1
+        return errors
+    
+    def wspaces(self, errors):
+        stack = []
+        index = 0
+        for i in self.text():
+            if i == "<":
+                stack.append(i)
+            elif stack and (stack[-1] == "<"):
+                if i ==" " or i == "\r" or i == "\n":
+                    errors.append(f"Пробел после символа открытия тега, индекс: {index}")
+                stack.pop() 
+            index += 1    
+        return errors
     
     @property
     def current_file_changed(self):

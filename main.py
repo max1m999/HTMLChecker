@@ -77,7 +77,19 @@ class MainWindow(QMainWindow):
         paste_action = edit_menu.addAction("Вставить")
         paste_action.setShortcut("Ctrl+V")
         paste_action.triggered.connect(self.paste)
+        
+        # Меню Сервис
+        service_menu = menu_bar.addMenu("Сервис")
+        
+        analysis_action = service_menu.addAction("Анализ файла")
+        #analysis_action.setShortcut("Ctrl+F")
+        analysis_action.triggered.connect(self.analysis)
     
+    def analysis(self):
+        editor = self.tab_view.currentWidget() 
+        if editor: 
+            self.errors.clear()
+            editor.start_analysis()
     
     def is_binary (self, path):
         # Проверка на бинарный файл - не может быть открыт в редакторе
@@ -95,8 +107,8 @@ class MainWindow(QMainWindow):
             self.tab_view.addTab(editor, f"{path}")
             self.tab_view.setCurrentIndex(self.tab_view.count() -1)
             self.current_file = None
-            return       
-        
+            return  
+                 
         # Проверка, открыт ли файл в одной из вкладок
         for i in range (self.tab_view.count()):
             if self.tab_view.tabText(i) == f"{path.absolute()}" or self.tab_view.tabText(i) == "*"+f"{path.absolute()}":
@@ -131,10 +143,27 @@ class MainWindow(QMainWindow):
         self.tab_view.setMovable(True)
         self.tab_view.setDocumentMode(True)
         self.tab_view.tabCloseRequested.connect(self.close_tab)
+        
+        # Окно ошибок
+        self.errors = QListWidget() 
+        self.errors.setContentsMargins(0,0,0,0) 
+        self.errors.setMaximumHeight(200)
+        self.errors.setFont(QFont("FiraCode", 14))
+        self.errors.setStyleSheet("""
+        QListWidget {
+            background-color: #21252b;
+            border-radius: 1px;            
+            padding: 5px;
+            color: #D3D3D3;
+        }
+        """)
+
+        #self.errors.itemClicked.connect(self.search_list_view_clicked)
                 
-        self.hsplit = QSplitter(Qt.Horizontal)
-        self.hsplit.addWidget(self.tab_view)  
-        body.addWidget(self.hsplit)
+        self.vsplit = QSplitter(Qt.Vertical)
+        self.vsplit.addWidget(self.tab_view)  
+        self.vsplit.addWidget(self.errors)  
+        body.addWidget(self.vsplit)
         body_frame.setLayout(body)     
                 
         self.setCentralWidget(body_frame)
