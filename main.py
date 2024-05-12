@@ -14,6 +14,7 @@ class MainWindow(QMainWindow):
         self.current_file = None        
         
     def init_ui(self):
+        self.setWindowIcon(self.style().standardIcon(getattr(QStyle,'SP_FileDialogDetailedView')))
         self.app_name = "HTML МАСТЕР"
         self.setWindowTitle(self.app_name)
         self.resize(1300,900)
@@ -156,7 +157,7 @@ class MainWindow(QMainWindow):
         dialog.setFont(self.font())
         dialog.font().setPointSize(14)
         dialog.setWindowTitle(title)
-        dialog.setWindowIcon(QIcon(":/icons/close-icon.svg"))
+        dialog.setWindowIcon(self.style().standardIcon(getattr(QStyle,'SP_MessageBoxCritical')))
         dialog.setText(msg)
         dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         dialog.setDefaultButton(QMessageBox.No)
