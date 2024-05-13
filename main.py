@@ -157,8 +157,7 @@ class MainWindow(QMainWindow):
             color: #D3D3D3;
         }
         """)
-
-        #self.errors.itemClicked.connect(self.search_list_view_clicked)
+        self.errors.addItem("Откройте HTML файл и запустите анализ в меню Сервис")
                 
         self.vsplit = QSplitter(Qt.Vertical)
         self.vsplit.addWidget(self.tab_view)  

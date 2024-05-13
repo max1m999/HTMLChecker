@@ -73,6 +73,7 @@ class Editor(QsciScintilla):
         # пробелы после <
         errors = self.wspaces(errors)
         
+        self.main_window.errors.addItem (f"Анализ файла {self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex())}...")
         if errors: 
             for i in errors:
                 self.main_window.errors.addItem(f"{i}")
@@ -87,8 +88,14 @@ class Editor(QsciScintilla):
         cl_list = ")}]>'\""
         for i in self.text():
             if i in op_list and not (stack and i == stack[-1]):
-                    stack.append(i)
-                    poz.append(index)
+                stack.append(i)
+                poz.append(index)
+            elif i in op_list and stack[-1] != "'" and stack[-1] != '"':
+                errors.append(f"Отсутствует парный символ для {stack[-1]}, индекс: {poz[-1]}")
+                stack.pop()
+                poz.pop()
+                stack.append(i)
+                poz.append(index)
             elif i in cl_list:
                 pos = cl_list.index(i)
                 if stack:
