@@ -81,30 +81,42 @@ class Editor(QsciScintilla):
     
     def brackets_matching(self, errors):
         stack = []
+        poz = []
         index = 0
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
-            if i in op_list and not(i == "'" or i=='"') and (not stack or stack[-1] != i):
-                stack.append(i)
+            if i in op_list and not (stack and i == stack[-1]):
+                    stack.append(i)
+                    poz.append(index)
             elif i in cl_list:
                 pos = cl_list.index(i)
-                if stack and (op_list[pos] == stack[-1]):
+                if stack:
+                    if op_list[pos] != stack[-1]:
+                        errors.append(f"Отсутствует парный символ для {i}, индекс: {index}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию?
+                        errors.append(f"Отсутствует парный символ для {stack[-1]}, индекс: {poz [-1]}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию? 
                     stack.pop()
+                    poz.pop()
                 else:
-                    errors.append(f"Отсутствует парный символ  {stack[-1]}, индекс: {index}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию?
+                    errors.append(f"Отсутствует парный символ для {i}, индекс: {index}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию?
             index += 1
+        if stack:
+            while stack:
+                errors.append(f"Отсутствует парный символ для {stack[-1]}, индекс: {poz[-1]}") #отсутствует или находится на неверной позиции - уточнять + автоматически ставить на первую возможную позицию / менять позицию?
+                stack.pop()
+                poz.pop()
         return errors
     
     def wspaces(self, errors):
         stack = []
         index = 0
+        poz = -1
         for i in self.text():
             if i == "<":
                 stack.append(i)
-            elif stack and (stack[-1] == "<"):
-                if i ==" " or i == "\r" or i == "\n":
-                    errors.append(f"Пробел после символа открытия тега, индекс: {index}")
+                poz = index
+            elif stack and (i ==" " or i == "\r" or i == "\n"):
+                errors.append(f"Пробел после символа <, индекс: {poz}")
                 stack.pop() 
             index += 1    
         return errors
