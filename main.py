@@ -82,7 +82,6 @@ class MainWindow(QMainWindow):
         service_menu = menu_bar.addMenu("Сервис")
         
         analysis_action = service_menu.addAction("Анализ файла")
-        #analysis_action.setShortcut("Ctrl+F")
         analysis_action.triggered.connect(self.analysis)
     
     def analysis(self):
@@ -158,14 +157,15 @@ class MainWindow(QMainWindow):
         }
         """)
         self.errors.addItem("Откройте HTML файл и запустите анализ в меню Сервис")
-                
+                     
         self.vsplit = QSplitter(Qt.Vertical)
         self.vsplit.addWidget(self.tab_view)  
         self.vsplit.addWidget(self.errors)  
         body.addWidget(self.vsplit)
         body_frame.setLayout(body)     
                 
-        self.setCentralWidget(body_frame)
+        self.setCentralWidget(body_frame)   
+  
         
     def closeEvent(self, event):
         while self.tab_view.count() > 0:
@@ -187,7 +187,8 @@ class MainWindow(QMainWindow):
         dialog.setWindowTitle(title)
         dialog.setWindowIcon(self.style().standardIcon(getattr(QStyle,'SP_MessageBoxCritical')))
         dialog.setText(msg)
-        dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        dialog.addButton("Нет", QMessageBox.NoRole)
+        dialog.addButton("Да", QMessageBox.YesRole)
         dialog.setDefaultButton(QMessageBox.No)
         dialog.setIcon(QMessageBox.Warning)
         return dialog.exec_()
