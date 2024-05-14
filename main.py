@@ -174,7 +174,7 @@ class MainWindow(QMainWindow):
     def close_tab(self, index):
         if "*" in self.tab_view.tabText(index):
             dialog = self.show_dialog("Закрыть вкладку", f"Сохранить изменения в {self.tab_view.tabText(index) [1:]}?")
-            if dialog == QMessageBox.Yes:
+            if dialog == 1:
                 self.tab_view.setCurrentIndex(index)
                 self.current_file = Path(self.tab_view.tabText(index)[1:])
                 self.save_file()
