@@ -39,7 +39,7 @@ class Editor(QsciScintilla):
         self.setColor(QColor("#bbc1ca"))
 
         #EOL
-        self.setEolMode(QsciScintilla.EolWindows)
+        self.setEolMode(QsciScintilla.EolUnix)
         self.setEolVisibility(False)
         
         # автозавершение слов
@@ -77,7 +77,12 @@ class Editor(QsciScintilla):
         # пробелы после <
         errors = self.wspaces(errors)
         
-        self.main_window.errors.addItem (f"Анализ файла {self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex())}...")
+        if "*" in self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()):
+            name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()) [1:]}"
+        else: 
+            name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex())}"
+        
+        self.main_window.errors.addItem (f"Анализ файла {name}...")
         if errors: 
             for i in errors:
                 # вывод ошибок в консоль
@@ -97,7 +102,7 @@ class Editor(QsciScintilla):
                 stack.append(i)
                 poz.append(index)
             elif i in op_list and stack[-1] != "'" and stack[-1] != '"':
-                errors.append(f"Отсутствует парный символ для {stack[-1]}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1]))}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")
+                errors.append(f"Отсутствует парный символ для {stack[-1]}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")
                 stack.pop()
                 poz.pop()
                 stack.append(i)
@@ -106,8 +111,8 @@ class Editor(QsciScintilla):
                 pos = cl_list.index(i)
                 if stack:
                     if op_list[pos] != stack[-1]:
-                        errors.append(f"Отсутствует парный символ для {i}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index))}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
-                        errors.append(f"Отсутствует парный символ для {stack[-1]},строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1]))},  индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")  
+                        errors.append(f"Отсутствует парный символ для {i}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
+                        errors.append(f"Отсутствует парный символ для {stack[-1]},строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1},  индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")  
                         stack.pop()
                         poz.pop()                
                         stack.append(i)
@@ -115,10 +120,10 @@ class Editor(QsciScintilla):
                     stack.pop()
                     poz.pop() 
                 else:
-                    errors.append(f"Отсутствует парный символ для {i}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index))}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
+                    errors.append(f"Отсутствует парный символ для {i}, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
             index += 1
         if stack:
-            errors.append(f"Отсутствует парный символ для {stack[-1]},строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1]))}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}") 
+            errors.append(f"Отсутствует парный символ для {stack[-1]},строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}") 
             stack.pop()
             poz.pop()
         return errors
@@ -126,14 +131,14 @@ class Editor(QsciScintilla):
     def wspaces(self, errors):
         stack = []
         index = 0
-        poz = -1
+        poz = -2
         for i in self.text():
             if i == "<":
                 stack.append(i)
                 poz = index
             elif index == poz+1:
                 if stack and (i ==" " or i == "\r" or i == "\n") :
-                    errors.append(f"Пробел после символа <, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz))}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz))}")
+                    errors.append(f"Пробел после символа <, строка {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz))}")
                 stack.pop() 
             index += 1    
         return errors
