@@ -42,7 +42,7 @@ class Editor(QsciScintilla):
         self.setColor(QColor("#bbc1ca"))
 
         #EOL
-        self.setEolMode(QsciScintilla.EolUnix)
+        self.setEolMode(QsciScintilla.EolWindows)
         self.setEolVisibility(False)
         
         # автозавершение слов
@@ -103,51 +103,68 @@ class Editor(QsciScintilla):
     def brackets_matching(self, errors):
         stack = []
         poz = []
+        lineP = []
         index = 0
+        line = 1
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
             if i in op_list and not (stack and i == stack[-1]):
                 stack.append(i)
                 poz.append(index)
+                lineP.append(line)
             elif i in op_list and stack[-1] != "'" and stack[-1] != '"':
-                errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")
+                errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
                 stack.pop()
                 poz.pop()
+                lineP.pop()
                 stack.append(i)
                 poz.append(index)
+                lineP.append(line)
             elif i in cl_list:
                 pos = cl_list.index(i)
                 if stack:
                     if op_list[pos] != stack[-1]:
-                        errors.append(f"Отсутствует парный символ для {i}, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
-                        errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1},  индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}")  
+                        errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+                        errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]},  индекс: {poz[-1]}")  
                         stack.pop()
-                        poz.pop()                
+                        poz.pop()
+                        lineP.pop()                
                         stack.append(i)
                         poz.append(index)
+                        lineP.append(line)
                     stack.pop()
-                    poz.pop() 
+                    poz.pop()
+                    lineP.pop() 
                 else:
-                    errors.append(f"Отсутствует парный символ для {i}, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(index)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(index))}") 
-            index += 1
+                    errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+            elif i == "\n": 
+                line +=1
+                index = -1
+            index +=1
         if stack:
-            errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz[-1])) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz[-1]))}") 
+            errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()
             poz.pop()
+            lineP.pop()
         return errors
     
     def wspaces(self, errors):
         stack = []
         index = 0
         poz = -2
+        line = 1
         for i in self.text():
             if i == "<":
                 stack.append(i)
                 poz = index
             elif index == poz+1:
-                if stack and (i ==" " or i == "\r" or i == "\n") :
-                    errors.append(f"Пробел после символа <, строка: {self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, int(poz)) + 1}, индекс: {self.SendScintilla(QsciScintilla.SCI_GETCOLUMN, int(poz))}")
+                if i == "\n":
+                    errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
+                    line += 1
+                    index = -1
+                elif stack and (i ==" " or i == "\r") :
+                    errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
                 stack.pop() 
             index += 1    
         return errors
