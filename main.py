@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
         self.app_name = "HTML МАСТЕР"
         self.setWindowTitle(self.app_name)
         self.resize(1300,900)
-        self.setStyleSheet(open ("C:\HTMLChecker\css\style.qss", "r").read())
+        self.setStyleSheet(open ("C://HTMLChecker/css/style.qss", "r").read())
         # Шрифт интерфейса
         self.window_font = QFont("FiraCode", 16)
         self.setFont(self.window_font)
