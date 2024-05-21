@@ -83,12 +83,21 @@ class MainWindow(QMainWindow):
         
         analysis_action = service_menu.addAction("Анализ файла")
         analysis_action.triggered.connect(self.analysis)
+        
+        fix_action = service_menu.addAction("Восстановить файл")
+        fix_action.triggered.connect(self.fix)
     
     def analysis(self):
         editor = self.tab_view.currentWidget() 
         if editor: 
             self.errors.clear()
             editor.start_analysis()
+            
+    def fix(self):
+        editor = self.tab_view.currentWidget() 
+        if editor: 
+            editor.start_fixing()
+            
     
     def is_binary (self, path):
         # Проверка на бинарный файл - не может быть открыт в редакторе

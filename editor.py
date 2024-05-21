@@ -99,6 +99,16 @@ class Editor(QsciScintilla):
                 self.index.append(int(f"{i}".split(":")[-1]))
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
         if not errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
+        
+    #   ВОССТАНОВЛЕНИЕ ФАЙЛА
+    def start_fixing(self):
+        str = ""
+        list = "<[{()}]>'\""
+        for i in self.text():
+            if i in list:
+                str += i
+        self.setText(str)
+        
     
     def brackets_matching(self, errors):
         stack = []
