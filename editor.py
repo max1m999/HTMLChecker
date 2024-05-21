@@ -119,11 +119,11 @@ class Editor(QsciScintilla):
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
-            if i in op_list and not (stack and i == stack[-1]):
+            if i in op_list and not (stack and i == stack[-1] and stack[-1] in ["'",'"',"<"]):
                 stack.append(i)
                 poz.append(index)
                 lineP.append(line)
-            elif i in op_list and stack[-1] != "'" and stack[-1] != '"':
+            elif stack and i == stack[-1] and stack[-1] == "<":
                 errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
                 stack.pop()
                 poz.pop()
