@@ -3,13 +3,16 @@ from PyQt5.QtCore import *
 from PyQt5.Qsci import *
 from PyQt5.QtGui import *
 from pathlib import Path
+from fuzzywuzzy import fuzz
+
+import re
 
 import keyword
 import pkgutil
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING #??????????
 
-if TYPE_CHECKING:
+if TYPE_CHECKING: #?????????????????
     from main import MainWindow
 
 class Editor(QsciScintilla):
@@ -25,6 +28,9 @@ class Editor(QsciScintilla):
         
         self.line = []
         self.index = []
+        
+        self.tagList = []
+        self.tagPoz = []
         
         # Кодировка
         self.setUtf8(True)
@@ -78,6 +84,10 @@ class Editor(QsciScintilla):
         errors = []
         self.line = []
         self.index = []
+        
+        # опечатки в тегах
+        errors = self.tags_spell(errors)
+        
         # парные символы
         errors = self.brackets_matching(errors)
                        
@@ -109,12 +119,42 @@ class Editor(QsciScintilla):
                 str += i
         self.setText(str)
         
+    def tags_spell(self, errors):
+        ind = 0
+        index = 0
+        line = 0
+        max_percent = -1
+        current_tag = ""
+        tok_str = self.text().split()
+        while tok_str.__len__() > index:
+            if tok_str[index].__contains__("<") and len(tok_str[index]) == 1: 
+                index+=1
+            elif tok_str[index].__contains__("<"):
+                print(tok_str[index][1:])
+                for x in self.main_window.tags_table:
+                    if fuzz.ratio(tok_str[index][1:], x['tag']) > max_percent:
+                        max_percent = fuzz.ratio(tok_str[index][1:], x['tag'])
+                        current_tag = x['tag']
+                    if max_percent == 100:
+                        break
+                if max_percent < 100: errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+                self.tagList.append(current_tag)
+                self.tagPoz.append((line,ind))
+                if tok_str[index] == "\n":
+                    ind = 0
+                    line += 1
+            ind += len(tok_str[index])
+            index += 1
+            max_percent = -1
+            current_tag = ""
+        return errors    
     
     def brackets_matching(self, errors):
         stack = []
         poz = []
         lineP = []
         index = 0
+        symbol = 0
         line = 1
         op_list = "({[<'\""
         cl_list = ")}]>'\""
@@ -152,6 +192,7 @@ class Editor(QsciScintilla):
                 line +=1
                 index = -1
             index +=1
+            symbol += 1
         if stack:
             errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()

@@ -5,13 +5,16 @@ from PyQt5.Qsci import *
 from PyQt5.QtGui import *
 import sys
 from pathlib import Path
+import csv
 from editor import Editor
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.init_ui()
-        self.current_file = None        
+        self.current_file = None 
+        self.tags_table = []
+        self.loadTags()       
         
     def init_ui(self):
         self.setWindowIcon(self.style().standardIcon(getattr(QStyle,'SP_FileDialogDetailedView')))
@@ -86,6 +89,14 @@ class MainWindow(QMainWindow):
         
         fix_action = service_menu.addAction("Восстановить файл")
         fix_action.triggered.connect(self.fix)
+    
+    # Загрузка таблицы с тегами    
+    def loadTags(self):
+        with open('C:\HTMLChecker\HTML5 tags.csv') as File:
+            #fieldnames = ['tag','necessary', 'paired', 'pair']
+            reader = csv.DictReader(File, dialect="excel", delimiter=";")
+            for row in reader:
+                self.tags_table.append(row)
     
     def analysis(self):
         editor = self.tab_view.currentWidget() 
