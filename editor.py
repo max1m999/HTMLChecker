@@ -125,17 +125,17 @@ class Editor(QsciScintilla):
         line = 0
         max_percent = -1
         current_tag = ""
-        tok_str = self.text().split()
+        tok_str = self.text().split(">")
         while tok_str.__len__() > index:
             if tok_str[index].__contains__("<") and len(tok_str[index]) == 1: 
                 index+=1
             elif tok_str[index].__contains__("<"):
-                print(tok_str[index][1:])
+                print(tok_str[index][tok_str[index].find("<")+1:])
                 for x in self.main_window.tags_table:
-                    if fuzz.ratio(tok_str[index][1:], x['tag']) > max_percent:
-                        max_percent = fuzz.ratio(tok_str[index][1:], x['tag'])
+                    if fuzz.ratio(tok_str[index][tok_str[index].find("<"):], x['tag']) > max_percent:
+                        max_percent = fuzz.ratio(tok_str[index][tok_str[index].find("<"):], x['tag'])
                         current_tag = x['tag']
-                    if max_percent == 100:
+                    if tok_str[index][tok_str[index].find("<"):].__contains__(x['tag']) or max_percent == 100:
                         break
                 if max_percent < 100: errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
                 self.tagList.append(current_tag)
