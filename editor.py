@@ -122,7 +122,7 @@ class Editor(QsciScintilla):
     def tags_spell(self, errors):
         ind = 0
         index = 0
-        line = 0
+        line = 1
         max_percent = -1
         current_tag = ""
         tok_str = self.text().split(">")
@@ -130,20 +130,24 @@ class Editor(QsciScintilla):
             if tok_str[index].__contains__("<") and len(tok_str[index]) == 1: 
                 index+=1
             elif tok_str[index].__contains__("<"):
-                print(tok_str[index][tok_str[index].find("<")+1:])
+                str = tok_str[index][tok_str[index].find("<")+1: tok_str[index].find(" ")+1]
                 for x in self.main_window.tags_table:
-                    if fuzz.ratio(tok_str[index][tok_str[index].find("<"):], x['tag']) > max_percent:
-                        max_percent = fuzz.ratio(tok_str[index][tok_str[index].find("<"):], x['tag'])
+                    if fuzz.ratio(str, x['tag']) > max_percent:
+                        max_percent = fuzz.ratio(str, x['tag'])
                         current_tag = x['tag']
-                    if tok_str[index][tok_str[index].find("<"):].__contains__(x['tag']) or max_percent == 100:
+                    if max_percent == 100 or max_percent >= 70 and str.__contains__(current_tag):
+                        print("<" + f"{current_tag}" +">")
                         break
-                if max_percent < 100: errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+                if max_percent < 70: 
+                    errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+                    print (f"debug : line {tok_str[index]} ; str{str}")
                 self.tagList.append(current_tag)
                 self.tagPoz.append((line,ind))
-                if tok_str[index] == "\n":
-                    ind = 0
-                    line += 1
-            ind += len(tok_str[index])
+                for x in tok_str[index]:
+                    if x == "\n":
+                        ind = 0
+                        line += 1
+            ind += len(tok_str[index]) # не то
             index += 1
             max_percent = -1
             current_tag = ""
