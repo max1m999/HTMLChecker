@@ -126,10 +126,15 @@ class Editor(QsciScintilla):
         max_percent = -1
         current_tag = ""
         tok_str = self.text().split(">")
-        while tok_str.__len__() > index: # несколько тегов в одной строке - сделать
+        while tok_str.__len__() > index:
             match = re.search(r'<\s*(\w+)', tok_str[index],re.IGNORECASE)
             match_end = re.search(r'</(\w+)', tok_str[index],re.IGNORECASE)
             match_complex = re.search(r'<(!+-{1,2})(\s*\w*\s*)*(-{1,2})|<(!+[A-Za-z]+)\s*([A-Za-z]+)', tok_str[index],re.IGNORECASE)
+            for x in tok_str[index]:
+                if x == "\n":                 
+                    ind = 0
+                    line += 1
+            ind += len(tok_str[index]) -1 
             if match_end:
                 str = match_end.group(1)
                 for x in self.main_window.tags_table:
@@ -139,7 +144,7 @@ class Editor(QsciScintilla):
                     if max_percent == 100:
                         print("</" + f"{current_tag}" +">")
                         break
-            elif match_complex: # СКОРРЕКТИРОВАТЬ ГРУППЫ
+            elif match_complex:
                 if match_complex.group(1):  # если найдено совпадение <!-- -->
                     str = match_complex.group(1) + " " + match_complex.group(3)
                 elif match_complex.group(4):  # если найдено совпадение <!doctype html>
@@ -165,11 +170,6 @@ class Editor(QsciScintilla):
                 print (f"debug : line {tok_str[index]} ; str  {str}")
             self.tagList.append(current_tag)
             self.tagPoz.append((line,ind))
-            for x in tok_str[index]:
-                if x == "\n":                 # не все считает - ??
-                    ind = 0
-                    line += 1
-            ind += len(tok_str[index]) # не то?
             index += 1
             max_percent = -1
             current_tag = ""
