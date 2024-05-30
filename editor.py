@@ -130,34 +130,33 @@ class Editor(QsciScintilla):
             match = re.search(r'<\s*(\w+)', tok_str[index],re.IGNORECASE)
             match_end = re.search(r'</(\w+)', tok_str[index],re.IGNORECASE)
             match_complex = re.search(r'<(!+-{1,2})(\s*\w*\s*)*(-{1,2})|<(!+[A-Za-z]+)\s*([A-Za-z]+)', tok_str[index],re.IGNORECASE)
-            # нужно, чтобы учитывал любой регистр
             if match_end:
                 str = match_end.group(1)
                 for x in self.main_window.tags_table:
-                    if fuzz.ratio(str, x['tag']) > max_percent:
-                        max_percent = fuzz.ratio(str, x['tag'])
-                        current_tag = x['tag']
+                    if fuzz.ratio(str.lower(), f"{x['tag']}".lower()) > max_percent:
+                        max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
+                        current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
                         print("</" + f"{current_tag}" +">")
                         break
             elif match_complex: # СКОРРЕКТИРОВАТЬ ГРУППЫ
                 if match_complex.group(1):  # если найдено совпадение <!-- -->
-                    str = match_complex.group(1) + " " + match_complex.group(2)
-                elif match_complex.group(3):  # если найдено совпадение <!doctype html>
-                    str = match_complex.group(3) + " " + match_complex.group(4)
+                    str = match_complex.group(1) + " " + match_complex.group(3)
+                elif match_complex.group(4):  # если найдено совпадение <!doctype html>
+                    str = match_complex.group(4) + " " + match_complex.group(5)
                 for x in self.main_window.tags_table:
-                    if fuzz.ratio(str, x['tag']) > max_percent:
-                        max_percent = fuzz.ratio(str, x['tag'])
-                        current_tag = x['tag']
+                    if fuzz.ratio(str.lower(), f"{x['tag']}".lower()) > max_percent:
+                        max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
+                        current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
                         print("<" + f"{current_tag}" +">")
                         break  
             elif match:
                 str = match.group(1)
                 for x in self.main_window.tags_table:
-                    if fuzz.ratio(str, x['tag']) > max_percent:
-                        max_percent = fuzz.ratio(str, x['tag'])
-                        current_tag = x['tag']
+                    if fuzz.ratio(str.lower(), f"{x['tag']}".lower()) > max_percent:
+                        max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
+                        current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
                         print("<" + f"{current_tag}" +">")
                         break      
