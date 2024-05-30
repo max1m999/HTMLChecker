@@ -126,28 +126,51 @@ class Editor(QsciScintilla):
         max_percent = -1
         current_tag = ""
         tok_str = self.text().split(">")
-        while tok_str.__len__() > index:
-            if tok_str[index].__contains__("<") and len(tok_str[index]) == 1: 
-                index+=1
-            elif tok_str[index].__contains__("<"):
-                str = tok_str[index][tok_str[index].find("<")+1: tok_str[index].find(" ")+1]
+        while tok_str.__len__() > index: # несколько тегов в одной строке - сделать
+            match = re.search(r'<\s*(\w+)', tok_str[index],re.IGNORECASE)
+            match_end = re.search(r'</(\w+)', tok_str[index],re.IGNORECASE)
+            match_complex = re.search(r'<(!+-{1,2})(\s*\w*\s*)*(-{1,2})|<(!+[A-Za-z]+)\s*([A-Za-z]+)', tok_str[index],re.IGNORECASE)
+            # нужно, чтобы учитывал любой регистр
+            if match_end:
+                str = match_end.group(1)
                 for x in self.main_window.tags_table:
                     if fuzz.ratio(str, x['tag']) > max_percent:
                         max_percent = fuzz.ratio(str, x['tag'])
                         current_tag = x['tag']
-                    if max_percent == 100 or max_percent >= 70 and str.__contains__(current_tag):
-                        print("<" + f"{current_tag}" +">")
+                    if max_percent == 100:
+                        print("</" + f"{current_tag}" +">")
                         break
-                if max_percent < 70: 
-                    errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-                    print (f"debug : line {tok_str[index]} ; str{str}")
-                self.tagList.append(current_tag)
-                self.tagPoz.append((line,ind))
-                for x in tok_str[index]:
-                    if x == "\n":
-                        ind = 0
-                        line += 1
-            ind += len(tok_str[index]) # не то
+            elif match_complex: # СКОРРЕКТИРОВАТЬ ГРУППЫ
+                if match_complex.group(1):  # если найдено совпадение <!-- -->
+                    str = match_complex.group(1) + " " + match_complex.group(2)
+                elif match_complex.group(3):  # если найдено совпадение <!doctype html>
+                    str = match_complex.group(3) + " " + match_complex.group(4)
+                for x in self.main_window.tags_table:
+                    if fuzz.ratio(str, x['tag']) > max_percent:
+                        max_percent = fuzz.ratio(str, x['tag'])
+                        current_tag = x['tag']
+                    if max_percent == 100:
+                        print("<" + f"{current_tag}" +">")
+                        break  
+            elif match:
+                str = match.group(1)
+                for x in self.main_window.tags_table:
+                    if fuzz.ratio(str, x['tag']) > max_percent:
+                        max_percent = fuzz.ratio(str, x['tag'])
+                        current_tag = x['tag']
+                    if max_percent == 100:
+                        print("<" + f"{current_tag}" +">")
+                        break      
+            if max_percent != -1 and max_percent < 100: 
+                errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+                print (f"debug : line {tok_str[index]} ; str  {str}")
+            self.tagList.append(current_tag)
+            self.tagPoz.append((line,ind))
+            for x in tok_str[index]:
+                if x == "\n":                 # не все считает - ??
+                    ind = 0
+                    line += 1
+            ind += len(tok_str[index]) # не то?
             index += 1
             max_percent = -1
             current_tag = ""
