@@ -74,8 +74,9 @@ class Editor(QsciScintilla):
     def set_error_pos(self,item):
         ind = self.main_window.errors.row(item) - 2
         if ind >= 0: 
-            self.setCursorPosition(self.line[ind]-1,self.index[ind])
-            self.setFocus()  
+            if self.line[ind] > -1:
+                self.setCursorPosition(self.line[ind]-1,self.index[ind])
+                self.setFocus()  
         
     def LineNumber (self):
         self.setMarginWidth(0, f"{self.lines() * 10}" )
@@ -95,15 +96,24 @@ class Editor(QsciScintilla):
         print(self.tagStart) # delete
         print(self.tagEnd) # delete
         
+        # парные символы
+        errors = self.brackets_matching(errors)
+        
+        # пробелы после <
+        errors = self.wspaces(errors)
+        
         # наличие необходимых тегов
         errors = self.tags_presence(errors)
         
-        # парные символы
-        errors = self.brackets_matching(errors)
+        # порядок тегов
+        errors = self.tags_order(errors)
+        
+        # наличие пар тегов
+#        errors = self.tags_pair(errors)
+        
+        # вложенность тегов
+    #    errors = self.tags_matching(errors)
                        
-        # пробелы после <
-        errors = self.wspaces(errors)
-                
         if "*" in self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()):
             name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()) [1:]}"
         else: 
@@ -113,10 +123,13 @@ class Editor(QsciScintilla):
         if errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in errors:
-                if not (f"{i}".__contains__("Отсутствует тег")):
+                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Некорректное")):
                    
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
+                else:
+                    self.line.append(-1)
+                    self.index.append(-1)
                 # вывод ошибок в консоль
                 self.main_window.errors.addItem(f"{i}")
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
@@ -199,6 +212,21 @@ class Editor(QsciScintilla):
                 if self.tagList.__contains__(f"{x['tag']}".lower()) == False:
                     errors.append(f"Отсутствует тег {x['tag']}")            
         return errors    
+    
+    def tags_order(self, errors):
+        if self.tagList[0] != '!doctype html':
+            errors.append("Некорректное расположение тега <!doctype html>")
+        if self.tagList[1] != 'html':
+            errors.append("Некорректное расположение тега <html>")
+        if self.tagList[2] != 'head':
+            errors.append("Некорректное расположение тега <head>")
+        if not (self.tagList.index('head') < self.tagList.index('meta') and self.tagList.index('meta') < self.tagList.index('/head')):
+            errors.append("Некорректное расположение тега <meta>")
+        if not (self.tagList.index('head') < self.tagList.index('title') and self.tagList.index('title') < self.tagList.index('/head')):
+            errors.append("Некорректное расположение тега <title>")    
+        if not (self.tagList.index('/head') < self.tagList.index('body')):
+            errors.append("Некорректное расположение тега <body>")            
+        return errors
     
     def brackets_matching(self, errors):
         stack = []
