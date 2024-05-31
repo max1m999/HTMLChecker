@@ -30,7 +30,8 @@ class Editor(QsciScintilla):
         self.index = []
         
         self.tagList = []
-        self.tagPoz = []
+        self.tagStart = []
+        self.tagEnd = []
         
         # Кодировка
         self.setUtf8(True)
@@ -85,11 +86,17 @@ class Editor(QsciScintilla):
         self.line = []
         self.index = []
         self.tagList = []
-        self.tagPoz = []
+        self.tagStart = []
+        self.tagEnd = []
         
         # опечатки в тегах
         errors = self.tags_spell(errors)
         print(self.tagList) # delete
+        print(self.tagStart) # delete
+        print(self.tagEnd) # delete
+        
+        # наличие необходимых тегов
+        errors = self.tags_presence(errors)
         
         # парные символы
         errors = self.brackets_matching(errors)
@@ -106,14 +113,16 @@ class Editor(QsciScintilla):
         if errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in errors:
+                if not (f"{i}".__contains__("Отсутствует тег")):
+                   
+                    self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
+                    self.index.append(int(f"{i}".split(":")[-1])) 
                 # вывод ошибок в консоль
                 self.main_window.errors.addItem(f"{i}")
-                self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
-                self.index.append(int(f"{i}".split(":")[-1]))
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
         if not errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
         
-    #   ВОССТАНОВЛЕНИЕ ФАЙЛА
+    # ВОССТАНОВЛЕНИЕ ФАЙЛА
     def start_fixing(self):
         str = ""
         list = "<[{()}]>'\""
@@ -173,13 +182,22 @@ class Editor(QsciScintilla):
                         break            
             if max_percent > 60:
                 self.tagList.append(current_tag)
+                self.tagStart.append((line,ind))
                 if max_percent < 100: 
                     errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-            errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
+            #errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
             ind += len(tok_str[index][tok_str[index].find("<"):]) + 1
+            if max_percent > 60: self.tagEnd.append((line,ind))
             index += 1
             max_percent = -1
             current_tag = ""
+        return errors
+    
+    def tags_presence(self, errors):
+        for x in self.main_window.tags_table:
+            if x['necessary'] == '1':
+                if self.tagList.__contains__(f"{x['tag']}".lower()) == False:
+                    errors.append(f"Отсутствует тег {x['tag']}")            
         return errors    
     
     def brackets_matching(self, errors):
