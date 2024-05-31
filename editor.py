@@ -84,9 +84,12 @@ class Editor(QsciScintilla):
         errors = []
         self.line = []
         self.index = []
+        self.tagList = []
+        self.tagPoz = []
         
         # опечатки в тегах
         errors = self.tags_spell(errors)
+        print(self.tagList) # delete
         
         # парные символы
         errors = self.brackets_matching(errors)
@@ -134,7 +137,9 @@ class Editor(QsciScintilla):
                 if x == "\n":                 
                     ind = 0
                     line += 1
-            ind += len(tok_str[index]) -1 
+                elif x == "<":
+                    break
+                else: ind +=1
             if match_end:
                 str = match_end.group(1)
                 for x in self.main_window.tags_table:
@@ -142,8 +147,9 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("</" + f"{current_tag}" +">")
+                        print("</" + f"{current_tag}" +">") # delete
                         break
+                current_tag = "/" + f"{current_tag}"
             elif match_complex:
                 if match_complex.group(1):  # если найдено совпадение <!-- -->
                     str = match_complex.group(1) + " " + match_complex.group(3)
@@ -154,7 +160,7 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("<" + f"{current_tag}" +">")
+                        print("<" + f"{current_tag}" +">") # delete
                         break  
             elif match:
                 str = match.group(1)
@@ -163,13 +169,14 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("<" + f"{current_tag}" +">")
-                        break      
-            if max_percent != -1 and max_percent < 100: 
-                errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-                print (f"debug : line {tok_str[index]} ; str  {str}")
-            self.tagList.append(current_tag)
-            self.tagPoz.append((line,ind))
+                        print("<" + f"{current_tag}" +">") # delete
+                        break            
+            if max_percent > 60:
+                self.tagList.append(current_tag)
+                if max_percent < 100: 
+                    errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+            errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
+            ind += len(tok_str[index][tok_str[index].find("<"):]) + 1
             index += 1
             max_percent = -1
             current_tag = ""
