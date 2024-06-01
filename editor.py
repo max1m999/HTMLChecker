@@ -110,9 +110,6 @@ class Editor(QsciScintilla):
         
         # наличие пар тегов
         errors = self.tags_pair(errors)
-        
-        # вложенность тегов
-    #    errors = self.tags_matching(errors)
                        
         if "*" in self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()):
             name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()) [1:]}"
@@ -214,36 +211,38 @@ class Editor(QsciScintilla):
         return errors    
     
     def tags_order(self, errors):
-        if self.tagList[0] != '!doctype html':
+        if self.tagList.__contains__('!doctype html') and self.tagList[0] != '!doctype html':
             errors.append("Некорректное расположение тега <!doctype html>")
-        if self.tagList[1] != 'html':
+        if self.tagList.__contains__('html') and self.tagList[1] != 'html':
             errors.append("Некорректное расположение тега <html>")
-        if self.tagList[2] != 'head':
-            errors.append("Некорректное расположение тега <head>")
-        if not (self.tagList.index('head') < self.tagList.index('meta') and self.tagList.index('meta') < self.tagList.index('/head')):
-            errors.append("Некорректное расположение тега <meta>")
-        if not (self.tagList.index('head') < self.tagList.index('title') and self.tagList.index('title') < self.tagList.index('/head')):
-            errors.append("Некорректное расположение тега <title>")    
-        if not (self.tagList.index('/head') < self.tagList.index('body')):
-            errors.append("Некорректное расположение тега <body>")            
+        if self.tagList.__contains__('head'):
+            if self.tagList[2] != 'head':
+                errors.append("Некорректное расположение тега <head>")
+            if self.tagList.__contains__('/head'):
+                if self.tagList.__contains__('meta') and not (self.tagList.index('head') < self.tagList.index('meta') and self.tagList.index('meta') < self.tagList.index('/head')):
+                    errors.append("Некорректное расположение тега <meta>")
+                if self.tagList.__contains__('title') and not (self.tagList.index('head') < self.tagList.index('title') and self.tagList.index('title') < self.tagList.index('/head')):
+                    errors.append("Некорректное расположение тега <title>")    
+                if self.tagList.__contains__('body') and not (self.tagList.index('/head') < self.tagList.index('body')):
+                    errors.append("Некорректное расположение тега <body>")            
         return errors
-    
     def tags_pair(self, errors):
         stack = []
-        poz = []
-        lineP = []
-        index = 0
-        symbol = 0
-        line = 1
-        op_list = []
-        cl_list = []
+        poz = 0
         for i in self.tagList:
             if f"{i}".__contains__("/"):
-                if stack[-1] == f"{i}"[1:]:
+                if stack: 
+                    if stack[-1] != f"{i}"[1:]:
+                        errors.append(f"Отсутствует открывающий тег для {i}, строка: {self.tagStart[poz][0]}, индекс: {self.tagStart[poz][1]}")
                     stack.pop()
             else: 
                 if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
-                    stack.append(i)
+                    if not stack or stack[-1] != f"{i}"[1:]:
+                        stack.append(i)
+                    else: 
+                        open_poz = self.tagStart[self.tagList.index(stack[-1])]
+                        errors.append(f"Отсутствует закрывающий тег для {stack[-1]}, строка: {open_poz[0]}, индекс: {open_poz[1]}")
+            poz += 1
             print(stack) # delete
         return errors
     
