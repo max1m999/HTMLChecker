@@ -109,7 +109,7 @@ class Editor(QsciScintilla):
         errors = self.tags_order(errors)
         
         # наличие пар тегов
-#        errors = self.tags_pair(errors)
+        errors = self.tags_pair(errors)
         
         # вложенность тегов
     #    errors = self.tags_matching(errors)
@@ -226,6 +226,25 @@ class Editor(QsciScintilla):
             errors.append("Некорректное расположение тега <title>")    
         if not (self.tagList.index('/head') < self.tagList.index('body')):
             errors.append("Некорректное расположение тега <body>")            
+        return errors
+    
+    def tags_pair(self, errors):
+        stack = []
+        poz = []
+        lineP = []
+        index = 0
+        symbol = 0
+        line = 1
+        op_list = []
+        cl_list = []
+        for i in self.tagList:
+            if f"{i}".__contains__("/"):
+                if stack[-1] == f"{i}"[1:]:
+                    stack.pop()
+            else: 
+                if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
+                    stack.append(i)
+            print(stack) # delete
         return errors
     
     def brackets_matching(self, errors):
