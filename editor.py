@@ -232,18 +232,26 @@ class Editor(QsciScintilla):
         for i in self.tagList:
             if f"{i}".__contains__("/"):
                 if stack: 
-                    if stack[-1] != f"{i}"[1:]:
+                    if stack and stack[-1] != f"{i}"[1:] or not stack:
                         errors.append(f"Отсутствует открывающий тег для {i}, строка: {self.tagStart[poz][0]}, индекс: {self.tagStart[poz][1]}")
-                    stack.pop()
+                    else: 
+                        if stack:
+                            stack.pop()
             else: 
                 if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
-                    if not stack or stack[-1] != f"{i}"[1:]:
+                    if not stack or stack[-1] != i and (stack[-1] == 'html' or stack[-1] == 'head' and i not in ['body', 'html'] or stack[-1] == 'body' and i not in ['head', 'html','title']):
                         stack.append(i)
                     else: 
                         open_poz = self.tagStart[self.tagList.index(stack[-1])]
                         errors.append(f"Отсутствует закрывающий тег для {stack[-1]}, строка: {open_poz[0]}, индекс: {open_poz[1]}")
+                        stack.pop()
+                        stack.append(i)
             poz += 1
             print(stack) # delete
+        while stack:
+            open_poz = self.tagStart[self.tagList.index(stack[-1])]
+            errors.append(f"Отсутствует закрывающий тег для {stack[-1]}, строка: {open_poz[0]}, индекс: {open_poz[1]}")
+            stack.pop()
         return errors
     
     def brackets_matching(self, errors):
@@ -290,7 +298,7 @@ class Editor(QsciScintilla):
                 index = -1
             index +=1
             symbol += 1
-        if stack:
+        while stack:
             errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()
             poz.pop()
