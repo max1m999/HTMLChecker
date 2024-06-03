@@ -101,7 +101,7 @@ class Editor(QsciScintilla):
         
         # пробелы после <
         errors = self.wspaces(errors)
-        if not errors:
+        if  errors:
             # наличие необходимых тегов
             errors = self.tags_presence(errors)
             
@@ -120,7 +120,7 @@ class Editor(QsciScintilla):
         if errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in errors:
-                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Некорректное")):
+                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
                    
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
@@ -151,7 +151,7 @@ class Editor(QsciScintilla):
         while tok_str.__len__() > index:
             match = re.search(r'<\s*(\w+)', tok_str[index],re.IGNORECASE)
             match_end = re.search(r'</(\w+)', tok_str[index],re.IGNORECASE)
-            match_complex = re.search(r'<(!+-{1,2})(\s*\w*\s*)*(-{1,2})|<(!+[A-Za-z]+)\s*([A-Za-z]+)', tok_str[index],re.IGNORECASE)
+            match_complex = re.search(r'<(!+-{1,2})(\s*[()]*/*\w*\s*)*(-{1,2})|<(!+[A-Za-z]+)\s*([A-Za-z]+)', tok_str[index],re.IGNORECASE)
             for x in tok_str[index]:
                 if x == "\n":                 
                     ind = 0
@@ -195,7 +195,7 @@ class Editor(QsciScintilla):
                 self.tagStart.append((line,ind))
                 if max_percent < 100: 
                     errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-            #errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
+                    errors.append(f"Debug {tok_str[index]}, строка: {line}, индекс: {ind}") # delete
             ind += len(tok_str[index][tok_str[index].find("<"):]) + 1
             if max_percent > 60: self.tagEnd.append((line,ind))
             index += 1
@@ -249,8 +249,8 @@ class Editor(QsciScintilla):
             errors.append(f"Отсутствует тег </{stack[-1]}>")
             stack.pop()
         while cl_stack:
-            errors.append(f"Отсутствует тег <{stack[-1][1:]}>")
-            stack.pop()
+            errors.append(f"Отсутствует тег <{cl_stack[-1][1:]}>")
+            cl_stack.pop()
         return errors
     
     def brackets_matching(self, errors):
