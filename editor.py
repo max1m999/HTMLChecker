@@ -10,9 +10,9 @@ import re
 import keyword
 import pkgutil
 
-from typing import TYPE_CHECKING #??????????
+from typing import TYPE_CHECKING 
 
-if TYPE_CHECKING: #?????????????????
+if TYPE_CHECKING:
     from main import MainWindow
 
 class Editor(QsciScintilla):
@@ -101,15 +101,15 @@ class Editor(QsciScintilla):
         
         # пробелы после <
         errors = self.wspaces(errors)
-        
-        # наличие необходимых тегов
-        errors = self.tags_presence(errors)
-        
-        # порядок тегов
-        errors = self.tags_order(errors)
-        
-        # наличие пар тегов
-        errors = self.tags_pair(errors)
+        if not errors:
+            # наличие необходимых тегов
+            errors = self.tags_presence(errors)
+            
+            # порядок тегов
+            errors = self.tags_order(errors)
+            
+            # наличие пар тегов
+            errors = self.tags_pair(errors)
                        
         if "*" in self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()):
             name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()) [1:]}"
@@ -226,31 +226,30 @@ class Editor(QsciScintilla):
                 if self.tagList.__contains__('body') and not (self.tagList.index('/head') < self.tagList.index('body')):
                     errors.append("Некорректное расположение тега <body>")            
         return errors
+    
     def tags_pair(self, errors):
         stack = []
-        poz = 0
+        cl_stack = []
+        ind = 0
         for i in self.tagList:
             if f"{i}".__contains__("/"):
-                if stack: 
-                    if stack and stack[-1] != f"{i}"[1:] or not stack:
-                        errors.append(f"Отсутствует открывающий тег для {i}, строка: {self.tagStart[poz][0]}, индекс: {self.tagStart[poz][1]}")
-                    else: 
-                        if stack:
-                            stack.pop()
-            else: 
-                if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
-                    if not stack or stack[-1] != i and (stack[-1] == 'html' or stack[-1] == 'head' and i not in ['body', 'html'] or stack[-1] == 'body' and i not in ['head', 'html','title']):
-                        stack.append(i)
-                    else: 
-                        open_poz = self.tagStart[self.tagList.index(stack[-1])]
-                        errors.append(f"Отсутствует закрывающий тег для {stack[-1]}, строка: {open_poz[0]}, индекс: {open_poz[1]}")
-                        stack.pop()
-                        stack.append(i)
-            poz += 1
+                cl_stack.append(i)
+                print("cl: " + f"{cl_stack}") # delete
+            elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
+                stack.append(i)
             print(stack) # delete
+        while ind < len(stack):
+            if cl_stack.__contains__("/"+f"{stack[ind]}"):
+                cl_stack.pop(cl_stack.index("/"+f"{stack[ind]}"))
+                stack.pop(ind)
+            else: ind +=1  
+        print (stack)  # delete 
+        print (cl_stack)  # delete 
         while stack:
-            open_poz = self.tagStart[self.tagList.index(stack[-1])]
-            errors.append(f"Отсутствует закрывающий тег для {stack[-1]}, строка: {open_poz[0]}, индекс: {open_poz[1]}")
+            errors.append(f"Отсутствует тег </{stack[-1]}>")
+            stack.pop()
+        while cl_stack:
+            errors.append(f"Отсутствует тег <{stack[-1][1:]}>")
             stack.pop()
         return errors
     
