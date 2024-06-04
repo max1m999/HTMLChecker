@@ -26,6 +26,8 @@ class Editor(QsciScintilla):
         self.linesChanged.connect(self.LineNumber)
         self.path = path
         
+        self.errors = []
+        
         self.line = []
         self.index = []
         
@@ -84,7 +86,7 @@ class Editor(QsciScintilla):
     
     # АНАЛИЗ ФАЙЛА
     def start_analysis(self):
-        errors = []
+        self.errors = []
         self.line = []
         self.index = []
         self.tagList = []
@@ -93,7 +95,7 @@ class Editor(QsciScintilla):
         self.tagIgnore = []
         
         # опечатки в тегах
-        errors = self.tags_spell(errors)
+        self.tags_spell()
         print(self.tagList) # delete
         print(self.tagStart) # delete
         print(self.tagEnd) # delete
@@ -102,19 +104,19 @@ class Editor(QsciScintilla):
         self.skip_Text()
         
         # парные символы
-        errors = self.brackets_matching(errors)
+        self.brackets_matching()
         
         # пробелы после <
-        errors = self.wspaces(errors)
-        if not errors:
+        self.wspaces()
+        if not self.errors:
             # наличие необходимых тегов
-            errors = self.tags_presence(errors)
+            self.tags_presence()
             
             # порядок тегов
-            errors = self.tags_order(errors)
+            self.tags_order()
             
             # наличие пар тегов
-            errors = self.tags_pair(errors)
+            self.tags_pair()
                        
         if "*" in self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()):
             name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex()) [1:]}"
@@ -122,9 +124,9 @@ class Editor(QsciScintilla):
             name = f"{self.main_window.tab_view.tabText(self.main_window.tab_view.currentIndex())}"
         
         self.main_window.errors.addItem (f"Анализ файла {name}...")
-        if errors: 
+        if self.errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
-            for i in errors:
+            for i in self.errors:
                 if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
                    
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
@@ -135,16 +137,12 @@ class Editor(QsciScintilla):
                 # вывод ошибок в консоль
                 self.main_window.errors.addItem(f"{i}")
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
-        if not errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
+        if not self.errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
         
     # ВОССТАНОВЛЕНИЕ ФАЙЛА
     def start_fixing(self):
-        str = ""
-        list = "<[{()}]>'\""
-        for i in self.text():
-            if i in list:
-                str += i
-        self.setText(str)
+        for error in self.errors:
+            pass
     
     def skip_Text (self):
         symbol = 0
@@ -182,7 +180,7 @@ class Editor(QsciScintilla):
         print("ignore count: " + f"{self.tagIgnore.__len__()}") # delete
         print("ignore : " + f"{self.tagIgnore}") # delete
         
-    def tags_spell(self, errors):
+    def tags_spell(self):
         ind = 0
         index = 0
         line = 1
@@ -234,10 +232,10 @@ class Editor(QsciScintilla):
             if max_percent > 60:
                 self.tagList.append(current_tag)
                 self.tagStart.append((line,ind))
-              #  errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
+              #  self.errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
                 if max_percent < 100: 
-                    errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-                    errors.append(f"Debug {tok_str[index]}, строка: {line}, индекс: {ind}") # delete
+                    self.errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
+                    self.errors.append(f"Debug {tok_str[index]}, строка: {line}, индекс: {ind}") # delete
             for x in tok_str[index][tok_str[index].find("<"):]:
                 if x == "\n":                 
                     ind = 0
@@ -248,33 +246,30 @@ class Editor(QsciScintilla):
             index += 1
             max_percent = -1
             current_tag = ""
-        return errors
     
-    def tags_presence(self, errors):
+    def tags_presence(self):
         for x in self.main_window.tags_table:
             if x['necessary'] == '1':
                 if self.tagList.__contains__(f"{x['tag']}".lower()) == False:
-                    errors.append(f"Отсутствует тег {x['tag']}")            
-        return errors    
+                    self.errors.append(f"Отсутствует тег {x['tag']}")                
     
-    def tags_order(self, errors):
+    def tags_order(self):
         if self.tagList.__contains__('!doctype html') and self.tagList[0] != '!doctype html':
-            errors.append("Некорректное расположение тега <!doctype html>")
+            self.errors.append("Некорректное расположение тега <!doctype html>")
         if self.tagList.__contains__('html') and self.tagList[1] != 'html':
-            errors.append("Некорректное расположение тега <html>")
+            self.errors.append("Некорректное расположение тега <html>")
         if self.tagList.__contains__('head'):
             if self.tagList[2] != 'head':
-                errors.append("Некорректное расположение тега <head>")
+                self.errors.append("Некорректное расположение тега <head>")
             if self.tagList.__contains__('/head'):
                 if self.tagList.__contains__('meta') and not (self.tagList.index('head') < self.tagList.index('meta') and self.tagList.index('meta') < self.tagList.index('/head')):
-                    errors.append("Некорректное расположение тега <meta>")
+                    self.errors.append("Некорректное расположение тега <meta>")
                 if self.tagList.__contains__('title') and not (self.tagList.index('head') < self.tagList.index('title') and self.tagList.index('title') < self.tagList.index('/head')):
-                    errors.append("Некорректное расположение тега <title>")    
+                    self.errors.append("Некорректное расположение тега <title>")    
                 if self.tagList.__contains__('body') and not (self.tagList.index('/head') < self.tagList.index('body')):
-                    errors.append("Некорректное расположение тега <body>")            
-        return errors
+                    self.errors.append("Некорректное расположение тега <body>")            
     
-    def tags_pair(self, errors):
+    def tags_pair(self):
         stack = []
         cl_stack = []
         ind = 0
@@ -293,14 +288,13 @@ class Editor(QsciScintilla):
         print (stack)  # delete 
         print (cl_stack)  # delete 
         while stack:
-            errors.append(f"Отсутствует тег </{stack[-1]}>")
+            self.errors.append(f"Отсутствует тег </{stack[-1]}>")
             stack.pop()
         while cl_stack:
-            errors.append(f"Отсутствует тег <{cl_stack[-1][1:]}>")
+            self.errors.append(f"Отсутствует тег <{cl_stack[-1][1:]}>")
             cl_stack.pop()
-        return errors
     
-    def brackets_matching(self, errors):
+    def brackets_matching(self):
         stack = []
         poz = []
         lineP = []
@@ -316,7 +310,7 @@ class Editor(QsciScintilla):
                     poz.append(index)
                     lineP.append(line)
                 elif stack and i == stack[-1] and stack[-1] == "<":
-                    errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
+                    self.errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
                     stack.pop()
                     poz.pop()
                     lineP.pop()
@@ -327,8 +321,8 @@ class Editor(QsciScintilla):
                     pos = cl_list.index(i)
                     if stack:
                         if op_list[pos] != stack[-1]:
-                            errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
-                            errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]},  индекс: {poz[-1]}")  
+                            self.errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+                            self.errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]},  индекс: {poz[-1]}")  
                             stack.pop()
                             poz.pop()
                             lineP.pop()                
@@ -339,7 +333,7 @@ class Editor(QsciScintilla):
                         poz.pop()
                         lineP.pop() 
                     else:
-                        errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+                        self.errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
             if i == "\n": 
                 line +=1
                 index = -1
@@ -351,13 +345,12 @@ class Editor(QsciScintilla):
             symbol += 1
         print("symbol: " + f"{symbol}") # delete
         while stack:
-            errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
+            self.errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()
             poz.pop()
             lineP.pop()
-        return errors
     
-    def wspaces(self, errors):
+    def wspaces(self):
         stack = []
         index = 0
         poz = -2
@@ -368,14 +361,13 @@ class Editor(QsciScintilla):
                 poz = index
             elif index == poz+1:
                 if i == "\n":
-                    errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
+                    self.errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
                     line += 1
                     index = -1
                 elif stack and (i ==" " or i == "\r") :
-                    errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
+                    self.errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
                 stack.pop() 
             index += 1    
-        return errors
     
     @property
     def current_file_changed(self):
