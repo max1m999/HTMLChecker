@@ -155,14 +155,21 @@ class Editor(QsciScintilla):
             if f"{i}".__contains__("/"):
                 if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}"[1:].lower())['ignore'] == '1':
                     self.tagIgnore.append(self.tagEnd[ind])
+                    print("I: /") # delete
+                    print(i) # delete
             elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['ignore'] == '1':
                self.tagIgnore.append(self.tagStart[ind])
+               print("I: ") # delete
+               print(i) # delete
             ind += 1
+        print("ORIGINAL: ") # delete
+        print(self.tagIgnore) # delete
+        print("-----") # delete
         ind = 0
         index = 0
         for i in self.tagIgnore:
             for s in str:
-                if line != int(self.tagIgnore[index][0]) and ind != int(self.tagIgnore[index][1]):
+                if line != int(self.tagIgnore[index][0]) or ind != int(self.tagIgnore[index][1]):
                     if s == "\n":
                         line += 1
                         ind = -1
@@ -227,10 +234,16 @@ class Editor(QsciScintilla):
             if max_percent > 60:
                 self.tagList.append(current_tag)
                 self.tagStart.append((line,ind))
+              #  errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
                 if max_percent < 100: 
                     errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
                     errors.append(f"Debug {tok_str[index]}, строка: {line}, индекс: {ind}") # delete
-            ind += len(tok_str[index][tok_str[index].find("<"):]) + 1
+            for x in tok_str[index][tok_str[index].find("<"):]:
+                if x == "\n":                 
+                    ind = 0
+                    line += 1
+                else: ind +=1
+            ind += 1
             if max_percent > 60: self.tagEnd.append((line,ind))
             index += 1
             max_percent = -1
@@ -297,40 +310,44 @@ class Editor(QsciScintilla):
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
-            if not self.tagIgnore[0] <= symbol <= self.tagIgnore[1]:
-            if i in op_list and not (stack and i == stack[-1] and stack[-1] in ["'",'"',"<"]):
-                stack.append(i)
-                poz.append(index)
-                lineP.append(line)
-            elif stack and i == stack[-1] and stack[-1] == "<":
-                errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
-                stack.pop()
-                poz.pop()
-                lineP.pop()
-                stack.append(i)
-                poz.append(index)
-                lineP.append(line)
-            elif i in cl_list:
-                pos = cl_list.index(i)
-                if stack:
-                    if op_list[pos] != stack[-1]:
-                        errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
-                        errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]},  индекс: {poz[-1]}")  
-                        stack.pop()
-                        poz.pop()
-                        lineP.pop()                
-                        stack.append(i)
-                        poz.append(index)
-                        lineP.append(line)
+            if self.tagIgnore.__len__() == 0 or self.tagIgnore.__len__() > 0 and not (self.tagIgnore[0] <= symbol <= self.tagIgnore[1]):
+                if i in op_list and not (stack and i == stack[-1] and stack[-1] in ["'",'"',"<"]):
+                    stack.append(i)
+                    poz.append(index)
+                    lineP.append(line)
+                elif stack and i == stack[-1] and stack[-1] == "<":
+                    errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}")
                     stack.pop()
                     poz.pop()
-                    lineP.pop() 
-                else:
-                    errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
-            elif i == "\n": 
+                    lineP.pop()
+                    stack.append(i)
+                    poz.append(index)
+                    lineP.append(line)
+                elif i in cl_list:
+                    pos = cl_list.index(i)
+                    if stack:
+                        if op_list[pos] != stack[-1]:
+                            errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+                            errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]},  индекс: {poz[-1]}")  
+                            stack.pop()
+                            poz.pop()
+                            lineP.pop()                
+                            stack.append(i)
+                            poz.append(index)
+                            lineP.append(line)
+                        stack.pop()
+                        poz.pop()
+                        lineP.pop() 
+                    else:
+                        errors.append(f"Отсутствует парный символ для {i}, строка: {line}, индекс: {index}") 
+            if i == "\n": 
                 line +=1
                 index = -1
             index +=1
+            if self.tagIgnore.__len__() > 0 and symbol == self.tagIgnore[1]:
+                self.tagIgnore.pop(0)
+                if self.tagIgnore:
+                    self.tagIgnore.pop(0)
             symbol += 1
         print("symbol: " + f"{symbol}") # delete
         while stack:
