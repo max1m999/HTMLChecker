@@ -32,6 +32,7 @@ class Editor(QsciScintilla):
         self.tagList = []
         self.tagStart = []
         self.tagEnd = []
+        self.tagIgnore = []
         
         # Кодировка
         self.setUtf8(True)
@@ -89,6 +90,7 @@ class Editor(QsciScintilla):
         self.tagList = []
         self.tagStart = []
         self.tagEnd = []
+        self.tagIgnore = []
         
         # опечатки в тегах
         errors = self.tags_spell(errors)
@@ -96,12 +98,15 @@ class Editor(QsciScintilla):
         print(self.tagStart) # delete
         print(self.tagEnd) # delete
         
+        # непроверяемый текст
+        self.skip_Text()
+        
         # парные символы
         errors = self.brackets_matching(errors)
         
         # пробелы после <
         errors = self.wspaces(errors)
-        if  errors:
+        if not errors:
             # наличие необходимых тегов
             errors = self.tags_presence(errors)
             
@@ -140,6 +145,35 @@ class Editor(QsciScintilla):
             if i in list:
                 str += i
         self.setText(str)
+    
+    def skip_Text (self):
+        symbol = 0
+        ind = 0
+        line = 1
+        str = self.text()
+        for i in self.tagList:
+            if f"{i}".__contains__("/"):
+                if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}"[1:].lower())['ignore'] == '1':
+                    self.tagIgnore.append(self.tagEnd[ind])
+            elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['ignore'] == '1':
+               self.tagIgnore.append(self.tagStart[ind])
+            ind += 1
+        ind = 0
+        index = 0
+        for i in self.tagIgnore:
+            for s in str:
+                if line != int(self.tagIgnore[index][0]) and ind != int(self.tagIgnore[index][1]):
+                    if s == "\n":
+                        line += 1
+                        ind = -1
+                    symbol += 1
+                    ind += 1
+                else: break
+            self.tagIgnore[index] = symbol
+            str = self.text()[symbol:]
+            index += 1
+        print("ignore count: " + f"{self.tagIgnore.__len__()}") # delete
+        print("ignore : " + f"{self.tagIgnore}") # delete
         
     def tags_spell(self, errors):
         ind = 0
@@ -263,6 +297,7 @@ class Editor(QsciScintilla):
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
+            if not self.tagIgnore[0] <= symbol <= self.tagIgnore[1]:
             if i in op_list and not (stack and i == stack[-1] and stack[-1] in ["'",'"',"<"]):
                 stack.append(i)
                 poz.append(index)
@@ -297,6 +332,7 @@ class Editor(QsciScintilla):
                 index = -1
             index +=1
             symbol += 1
+        print("symbol: " + f"{symbol}") # delete
         while stack:
             errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()
