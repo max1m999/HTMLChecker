@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+< head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>HTML Validator: Instantly Validate HTML Code</title>
+
+	<!-- OG -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://tiiny.host/">
+	<meta property="og:title" content="HTML Validator: Instantly Validate HTML Code">
+	<meta property="og:image" content="https://tiiny.host/logo-purple.jpg">
+	<meta property="og:description"
+		  content="Ensure your HTML code is error-free and standards-compliant with our user-friendly online HTML validator by tiiny.host.">
+
+	<!-- SEO -->
+	<link rel="canonical" href="https://tiiny.host/html-validator/">
+	<meta property="image" content="https://tiiny.host/logo-purple.jpg">
+	<meta name="description"
+		  content="Ensure your HTML code is error-free and standards-compliant with our user-friendly online HTML validator by tiiny.host.">
+	<meta name="robots" content="index,follow">
+	<meta name="keywords"
+		  content="HTML Validator, HTML Validator Online, Validate HTML">
+
+	<!-- core CSS -->
+	<link href="https://fonts.googleapis.com/css2?family=family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+	
+
+	<script rel="preload" defer src="https://assets.tiiny.xyz/html-test-lib/static/js/main.js"></script>
+	<link href="https://assets.tiiny.xyz/html-test-lib/static/css/main.css" rel="stylesheet">
+
+	<link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/assets/styles.css" rel="stylesheet">
+
+	<!-- Post Hog -->
+	<script>
+		!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+		posthog.init('phc_B1LSsZCnCQU9sOVZotP77pjRtkooOlDMyim9VhmguJp',{api_host:'https://eu.posthog.com'})
+	</script>
+
+	<!-- Fathom website analytics -->
+	<script src="https://cdn.usefathom.com/script.js" data-spa="auto" data-site="ZSFUQAVK" defer></script>
+	<!-- / Fathom -->
+</head>
+
+<body>
+
+<!-- Navigation -->
+
+<div class="sticky-outer-wrapper">
+  <div
+    class="sticky-inner-wrapper sticky"
+    style="
+      position: fixed;
+      z-index: 999;
+      transform: translate3d(0px, 0px, 0px);
+      top: 0px;
+      width: 100%;
+    "
+  >
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+      <button
+        type="button"
+        aria-label="Toggle navigation"
+        data-toggle="collapse"
+        data-target="#navbarResponsive"
+        aria-controls="navbarResponsive"
+        aria-expanded="false"
+        class="ms-3 navbar-toggler collapsed"
+      >
+        <span class="navbar-toggler-icon"></span></button
+      ><a href="/" class="d-l-none d-block navbar-brand"
+        ><img
+          class="home-header-logo"
+          src="/assets/images/logo.png"
+          alt="tiny.host"
+      /></a>
+      <div class="navbar-collapse collapse" id="navbarResponsive">
+        <div class="ms-l-3 navbar-nav">
+          <a
+            href="/blog/"
+            data-rr-ui-event-key="/blog/"
+            class="menu-link nav-link"
+            >Blog</a
+          ><a role="button" class="menu-link nav-link" tabindex="0" href="/help"
+            >Help</a
+          ><a
+            role="button"
+            class="menu-link nav-link"
+            tabindex="0"
+            href="/pricing"
+            >Pricing</a
+          >
+        </div>
+      </div>
+      <a href="/" class="d-none d-l-block navbar-brand"
+        ><img
+          class="home-header-logo"
+          src="/assets/images/logo.png"
+          alt="tiny.host"
+      /></a>
+      <div class="navbar-collapse collapse" id="navbarResponsive">
+        <div class="ml-auto navbar-nav"></div>
+        <div class="navbar-nav">
+            
+            <a role="button" class="nav">
+              <button class="test-btn-outline ml-3" style="border-radius: 30px;" onclick="window.location = 'https://tiiny.host'">Upload HTML File →</button>
+            </a>
+          
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+
+<br class="mt-5">
+<br class="mt-5">
+<br class="mt-5">
+
+<!-- Page Content -->
+<div class="container mt-5 mb-5 ">
+	<div class="row">
+		<div class="col-10 col-lg-8 text-center m-auto">
+			<h1 class="title">HTML Validator</h1>
+			<h2 class="font-weight-normal">A simple way to validate your HTML code online by <a href="https://tiiny.host">tiiny.host</a></h2>
+		</div>
+	</div>
+</div>
+
+<!-- Test HTML Lib (react) -->
+<div id="root" style="min-height: 780px" validate-html></div>
+
+<div class="container padded-section">
+	<div class="row justify-content-between">
+        <div class="col-10 ml-auto mr-auto col-lg-5 text-center mt-5 mt-md-0">
+			<img width="300px" src="/assets/images/html5.png"/>
+		</div>
+		<div class="col-10 m-auto col-lg-5">
+			<h2 class="mb-4">HTML Validation Tool</h2>
+			<p>The HTML Validator by Tiiny Host is an easy & simple way to validate, troubleshoot, and ensure your HTML meets the w3c standard. This tool not only checks your HTML code for errors but also provides specific feedback for code. By highlighting issues related to syntax, compatibility, and compliance, it aids in enhancing coding accuracy, improving user experiences, and boosting your site's SEO. The HTML Validator is your useful partner for a robust web development cycle, allowing for real-time insights and adjustments.</p>
+		</div>
+	</div>
+</div>
+<div class="container padded-section">
+	<div class="row">
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<h3 class="mb-4">👍 Copy & Paste Validation</h3>
+				<p>Validate your HTML code with ease. Simply copy & paste your code to check for errors and w3c standards compliance.</p>
+			</div>
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<h3 class="mb-4">🛠️ Thorough Standards Compliance</h3>
+				<p>Comprehensive checks for HTML, JavaScript, and CSS code to ensure it is error-free and adheres to web standards.</p>
+			</div>
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<h3 class="mb-4">🧑‍💻️ Full Stack Compatibility</h3>
+				<p>Supports validation for HTML sites integrated with JavaScript & CSS, ensuring a holistic review.</p>
+			</div>
+		
+	</div>
+</div>
+
+<div class="container padded-section">
+	<div class="text-center">
+		<div class="justify-content-center row">
+			<div class="col-10 col-sm-12 col-md-5 col-lg-5">
+				<h2 class="display-6 font-weight-bold text-center">
+					How to Publish Your Validated HTML Code
+				</h2>
+				<p>Publish your validated HTML code to the web in three simple steps</p>
+			</div>
+		</div>
+		<div class="justify-content-center row mt-lg-5">
+			<div class="col-10 col-md-4">
+				<div style="padding-top: 5vh;">
+					<div class="mb-5 text-center"><img src="/assets/images/images.svg" height="100"></div>
+					<h3 class="text-left font-weight-bold">1. Paste Code</h3>
+					<p class="tool-page text-left nice-read">
+						When you code has passed checks click the "Publish" button to convert it into a HTML file
+					</p></div>
+			</div>
+			<div class="col-10 col-md-4">
+				<div style="padding-top: 5vh;">
+					<div class="mb-5 text-center"><img src="/assets/images/upload.svg" height="100"></div>
+					<h3 class="text-left font-weight-bold">2. Enter a link-name (optional)</h3>
+					<p class="tool-page text-left nice-read">
+						Customize the url to share your validated HTML code online.
+					</p></div>
+			</div>
+			<div class="col-10 col-md-4">
+				<div style="padding-top: 5vh;">
+					<div class="mb-5 text-center"><img src="/assets/images/shuttle.svg" height="100"></div>
+					<h3 class="text-left font-weight-bold">3. Launch</h3>
+					<p class="text-left nice-read">
+						Click the "Launch" button & that's it! Your validated HTML code is now online.
+					</p></div>
+			</div>
+		</div>
+	</div>
+	<div class="row text-center d-none d-md-block d-lg-block d-xl-block">
+		<a href="/">
+			<button class="btn btn-primary btn-lg mt-5">Validate HTML Code &rarr;</button>
+		</a>
+	</div>
+</div>
+
+<div class="container padded-section grey-box">
+    <div class="row">
+        <div class="col-md-4 col-12 text-left justify-content-center compare-header">
+            <h2 class="text-center text-left-md font-32">Simplify validation compared to traditional methods <br/><span class="font-18 font-weight-normal text-left"></span></h2>
+        </div>
+        <div class="col-md-8 col-12 flex flex-wrap justify-content-center mt-5 mt-md-0">
+            
+            <div class="row col-12 col-md-4">
+                <div class="col-3 text-right">
+                    <img src="/assets/images/check.png" height="40" style="opacity: 0.5;"/>
+                </div>
+                <div class="col-9 mt-2">
+                    <h2 class="compare_text">The W3C Markup Validation Service</h2>
+                </div>
+            </div>
+            
+            <div class="row col-12 col-md-4">
+                <div class="col-3 text-right">
+                    <img src="/assets/images/check.png" height="40" style="opacity: 0.5;"/>
+                </div>
+                <div class="col-9 mt-2">
+                    <h2 class="compare_text">VSCode</h2>
+                </div>
+            </div>
+            
+            <div class="row col-12 col-md-4">
+                <div class="col-3 text-right">
+                    <img src="/assets/images/check.png" height="40" style="opacity: 0.5;"/>
+                </div>
+                <div class="col-9 mt-2">
+                    <h2 class="compare_text">Webstorm</h2>
+                </div>
+            </div>
+            
+            <div class="row col-12 col-md-4">
+                <div class="col-3 text-right">
+                    <img src="/assets/images/check.png" height="40" style="opacity: 0.5;"/>
+                </div>
+                <div class="col-9 mt-2">
+                    <h2 class="compare_text">FreeFormatter.com</h2>
+                </div>
+            </div>
+            
+            <div class="row col-12 col-md-4">
+                <div class="col-3 text-right">
+                    <img src="/assets/images/check.png" height="40" style="opacity: 0.5;"/>
+                </div>
+                <div class="col-9 mt-2">
+                    <h2 class="compare_text">AppDevTools</h2>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+<div class="container padded-section">
+	<div class="row text-center justify-content-center mb-5">
+		<div class="col-10 col-sm-12 col-md-5 col-lg-5">
+			<h2 class="tool-page-lh text-center font-weight-bold">Perfect Applications</h2>
+			<p>Discover the versatility of our HTML validator</p></div>
+	</div>
+	<div class="row text-left">
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<div class="mb-5 text-center">
+					<img src="" height="150">
+				</div>
+				<h3 class="mb-3">Error Detection</h3>
+				<p>Quickly identify and rectify errors in your HTML code for a flawless website.</p>
+			</div>
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<div class="mb-5 text-center">
+					<img src="" height="150">
+				</div>
+				<h3 class="mb-3">Code Optimization</h3>
+				<p>Utilize our detailed feedback for code enhancements and better performance.</p>
+			</div>
+		
+			<div class="col-10 col-md-4 mt-5 ml-auto mr-auto">
+				<div class="mb-5 text-center">
+					<img src="" height="150">
+				</div>
+				<h3 class="mb-3">Standards Compliance</h3>
+				<p>Ensure your website's code meets the latest web standards for better accessibility and SEO.</p>
+			</div>
+		
+	</div>
+</div>
+
+<div class="container padded-section">
+	<div class="row text-center justify-content-center mb-5">
+		<div class="col-12 col-sm-12 col-md-12 col-lg-12 resources">
+			<h2 class="tool-page-lh text-center header">Resources</h2>
+			<h3 class="main_title">Essential Reading for Web Development</h3>
+			<div class="btnContainer mt-3">
+				<a href="/blog">
+					<button class="btn btn-primary btn-lg mt-3">
+						Learn more on our blog <span class="arrow">&rarr;</span>
+					</button>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="row text-left flex gap-20">
+		
+		<div class="flex-1 mt-5 ml-auto mr-auto">
+			<div class="resource">
+				<h3 class="mb-3 ">
+					<a class="resource_header" href="https://tiiny.host/blog/how-to-open-html-file-in-chrome/" target=_blank>How to Open a HTML File in Google Chrome</a>
+				</h3>
+				<p class="resource_introtext">You know how to open a HTML file in Google Chrome until the time comes when something goes wrong. Learn what to do and how to host your web project for free....</p>
+				
+				<a class="resource_header" href="https://tiiny.host/blog/how-to-open-html-file-in-chrome/" target=_blank>
+					<button class="btn btn-dark btn-sm mt-3">Read more <span class="arrow">&rarr;</span></button>
+				</a>
+			</div>
+		</div>
+		
+		<div class="flex-1 mt-5 ml-auto mr-auto">
+			<div class="resource">
+				<h3 class="mb-3 ">
+					<a class="resource_header" href="https://tiiny.host/blog/link-javascript-to-html/" target=_blank>Link JavaScript to HTML: Create and Share Dynamic Webpages</a>
+				</h3>
+				<p class="resource_introtext">Explore the two methods of linking JavaScript to HTML to add web interactivity. Follow a step-by-step guide. Host and share your new site with Tiiny.host....</p>
+				
+				<a class="resource_header" href="https://tiiny.host/blog/link-javascript-to-html/" target=_blank>
+					<button class="btn btn-dark btn-sm mt-3">Read more <span class="arrow">&rarr;</span></button>
+				</a>
+			</div>
+		</div>
+		
+	</div>
+</div>
+
+
+<div class="container padded-section">
+	<h2 class="text-center">Frequently asked questions</h2>
+	
+	<div class="col-10 col-md-9 ml-auto mr-auto mt-5">
+		<h3 class="mb-3">What is a HTML validator used for?</h3>
+		<p>A HTML validator is a tool designed to analyze HTML code for errors, compliance with web standards, and optimization opportunities. It is crucial for developers to ensure their websites are accessible, efficient, and SEO-friendly. This tool streamlines the development process, enhances code quality, and facilitates a better user experience by providing detailed feedback on potential improvements.</p>
+	</div>
+	
+	<div class="col-10 col-md-9 ml-auto mr-auto mt-5">
+		<h3 class="mb-3">How do I check if my HTML code is valid?</h3>
+		<p>To check your HTML code's validity, simply paste it into our online validator. The tool will analyze your code for errors and compliance with web standards, offering actionable insights and feedback for improvement.</p>
+	</div>
+	
+	<div class="col-10 col-md-9 ml-auto mr-auto mt-5">
+		<h3 class="mb-3">What are the benefits of validating HTML code?</h3>
+		<p>Validating your HTML code ensures it is free from errors, compatible with various browsers, and meets web standards. This process enhances your website s performance, accessibility, and SEO, leading to a better overall user experience.</p>
+	</div>
+	
+	<div class="col-10 col-md-9 ml-auto mr-auto mt-5">
+		<h3 class="mb-3">Can this tool validate JavaScript and CSS?</h3>
+		<p>Yes, our HTML validator also supports JavaScript and CSS code checks, providing a comprehensive validation process to ensure all aspects of your web page are error-free and standards-compliant.</p>
+	</div>
+	
+</div>
+
+
+<div class="container padded-section text-center pl-4 pr-4">
+	<div class="row">
+		<div class="m-auto cta-box">
+			<h2 class="cta-title">
+				Publish Your HTML as a Link
+			</h2>
+			<a href="/">
+				<button class="btn btn-primary btn-lg mt-5">Upload HTML <span class="arrow">&rarr;</span></button>
+			</a>
+		</div>
+	</div>
+</div>
+
+<!-- Footer -->
+<div class="page-footer">
+    <div class="page">
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="logo">
+                    <img class="home-header-logo" src="https://tiiny.host/assets/logo-white.png" alt="tiny.host" onclick="location.href='/'" />
+                    <div class="about">
+                        Tiiny Labs Ltd. is a company registered in England and Wales with company number 12977077
+                    </div>
+                </div>
+
+                <div class="made-with">
+                    <div class="text-white">Built on </div>
+                    <img height="40" src="https://tiiny.host/assets/icons/aws.png" alt="Amazon Web Services" />
+                </div>
+
+                <div class="social-links">
+                    <a href="https://twitter.com/tiinyhost" target="_blank">
+                        <img alt="Twitter" src="https://tiiny.host/assets/icons/twitter.png" height="22" />
+                    </a>
+                    <a href="https://www.youtube.com/channel/UCmcesQ2I9hvEQqhI4CU6wBA" target="_blank">
+                        <img alt="YouTube" src="https://tiiny.host/assets/icons/youtube.png" height="25" />
+                    </a>
+                    <a href="https://www.linkedin.com/company/tiiny-host" target="_blank">
+                        <img alt="LinkedIn" src="https://tiiny.host/assets/icons/linkedin.png" height="16" />
+                    </a>
+                </div>
+            </div>
+
+            <div class="links-section">
+                <!-- Examples Section -->
+                <div class="links-con">
+                    <h3 class="link-header">Examples</h3>
+                    <ul class="links">
+                        <li><a href="https://tiiny.host/examples/sales-marketing">Sales & Marketing</a></li>
+                        <li><a href="https://tiiny.host/designers-artists">Designers & Artists</a></li>
+                        <li><a href="https://tiiny.host/developers">Developers</a></li>
+                        <li><a href="https://tiiny.host/real-estate">Real Estate</a></li>
+                        <li><a href="https://tiiny.host/recruitment">Recruitment</a></li>
+                        <li><a href="https://tiiny.host/e-learning-publishing">E-Learning & Publishing</a></li>
+                        <li><a href="https://tiiny.host/crypto">Crypto</a></li>
+                        <li><a href="https://tiiny.host/students">Students</a></li>
+                    </ul>
+                </div>
+
+                <!-- Use Cases Section -->
+                <div class="links-con">
+                    <h3 class="link-header">Use Cases</h3>
+                    <ul class="links">
+                        <li><a href="https://tiiny.host/host-html-file/">Host HTML file</a></li>
+                        <li><a href="https://tiiny.host/web-hosting-free-sites/">Web hosting free sites</a></li>
+                        <li><a href="https://tiiny.host/zip-site-web-hosting/">Zip file hosting</a></li>
+                        <li><a href="https://tiiny.host/use-case/resume-link/">Resume link</a></li>
+                        <li><a href="https://tiiny.host/pdf-upload/">PDF upload</a></li>
+                        <li><a href="https://tiiny.host/use-case/pdf-to-qr-code/">PDF to QR Code</a></li>
+                        <li><a href="https://tiiny.host/free-static-website-hosting/">Free static website hosting</a></li>
+                        <li><a href="https://tiiny.host/web-hosting-for-small-business/">Web hosting for small business</a></li>
+                        <li><a href="https://tiiny.host/web-hosting-for-students/">Web hosting for students</a></li>
+                        <li><a href="https://tiiny.host/marzipano-vr-host/">Marzipano VR host</a></li>
+                        <li><a href="https://tiiny.host/how-to-host-your-own-website/">How to host your own website</a></li>
+                        <li><a href="https://tiiny.host/use-case/">More use cases</a></li>
+                        <li><a href="https://tiiny.host/host/">More host examples</a></li>
+                    </ul>
+                </div>
+
+                <!-- Resources Section -->
+                <div class="links-con">
+                    <h3 class="link-header">Resources</h3>
+                    <ul class="links">
+                        <li><a href="https://helpdesk.tiiny.host/" target="_blank">Documentation</a></li>
+                        <li><a href="https://tiiny.host/test-html/">Test HTML</a></li>
+                        <li><a href="https://tiiny.host/html-viewer/">HTML Viewer</a></li>
+                        <li><a href="https://tiiny.host/html-validator/">HTML Validator</a></li>
+                        <li><a href="https://tiiny.host/html-formatter/">HTML Formatter</a></li>
+                        <li><a href="https://tiiny.host/invite/">Tiiny Invite</a></li>
+                        <li><a href="https://tiiny.host/blog">Blog</a></li>
+                        <li><a href="https://tiiny.host/help">Support Chat</a></li>
+                        <li><a href="https://tiiny.host/help">FAQs</a></li>
+                        <li><a href="https://tiiny.host/affiliates">Affiliate program</a></li>
+                        <li><a href="https://tiiny.host/report-site">Report abuse</a></li>
+                    </ul>
+                </div>
+
+                <!-- Useful Links Section -->
+                <div class="links-con">
+                    <h3 class="link-header">Useful Links</h3>
+                    <ul class="links">
+                        <li><a href="https://tiiny.host/pricing">Pricing</a></li>
+                        <li><a href="https://tiiny.host/help">Contact</a></li>
+                        <li><a href="https://tiiny.host/login">Login / Sign Up</a></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-privacy-container">
+            <div class="privacy">
+                © Tiiny Host <script>document.write(new Date().getFullYear())</script>
+            </div>
+            <div class="privacy">
+                <a href="http://tiiny.host/termsofservice.html" target="_blank">Terms & Conditions</a>
+                <a href="http://tiiny.host/privacypolicy.html" target="_blank">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<script
+src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+crossorigin="anonymous"
+></script>
+<script
+src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+crossorigin="anonymous"
+></script>
+<script
+src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+crossorigin="anonymous"
+></script>
+</body>
+
+</html>

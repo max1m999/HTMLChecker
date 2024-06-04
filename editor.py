@@ -73,13 +73,6 @@ class Editor(QsciScintilla):
         self.setMarginsForegroundColor(QColor("#ff888888"))
         self.setMarginsBackgroundColor(QColor("#282c34"))
         self.setMarginsFont(self.code_font)
-            
-    def set_error_pos(self,item):
-        ind = self.main_window.errors.row(item) - 2
-        if ind >= 0: 
-            if self.line[ind] > -1:
-                self.setCursorPosition(self.line[ind]-1,self.index[ind])
-                self.setFocus()  
         
     def LineNumber (self):
         self.setMarginWidth(0, f"{self.lines() * 10}" )
@@ -127,10 +120,11 @@ class Editor(QsciScintilla):
         if self.errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in self.errors:
-                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
+                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
                    
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
+                    print("errors lines: " + f"{self.line}") # delete
                 else:
                     self.line.append(-1)
                     self.index.append(-1)
@@ -139,10 +133,48 @@ class Editor(QsciScintilla):
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
         if not self.errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
         
+    def set_error_pos(self,item):
+        ind = self.main_window.errors.row(item) - 2
+        if ind >= 0: 
+            if self.line[ind] > -1:
+                self.setCursorPosition(self.line[ind]-1,self.index[ind])
+                self.setFocus()  
+        
     # ВОССТАНОВЛЕНИЕ ФАЙЛА
     def start_fixing(self):
-        for error in self.errors:
-            pass
+        if self.errors.__len__() > 0:
+            str = f"{self.errors[0]}"
+            match True:
+                case _ if "Ошибка в имени тега" in f"{str}": # spell
+                    pass
+                case _ if "Отсутствует тег" in f"{str}":  # pair
+                    pass
+                case _ if "Некорректное расположение тега" in f"{str}": # structure
+                    pass
+                case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
+                    pass
+                case _ if "Отсутствует парный символ" in f"{str}": # <>
+                    pass
+                case _ if "Пробел после символа" in f"{str}": # <_abc...
+                    self.fix_whitespace(self.line[0], self.index[0])    
+            self.start_analysis()
+            
+    
+    def fix_whitespace (self, line, index):
+        str = self.text()
+        lin = 1
+        ind = 0
+        symbol = 0
+        for s in str:
+            if lin != line or ind != index:
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                symbol += 1
+                ind += 1
+            else: break
+        fixed_str = str[:symbol+1] + str[symbol+2:]
+        self.setText(fixed_str)
     
     def skip_Text (self):
         symbol = 0
@@ -251,7 +283,7 @@ class Editor(QsciScintilla):
         for x in self.main_window.tags_table:
             if x['necessary'] == '1':
                 if self.tagList.__contains__(f"{x['tag']}".lower()) == False:
-                    self.errors.append(f"Отсутствует тег {x['tag']}")                
+                    self.errors.append(f"Отсутствует обязательный тег {x['tag']}")                
     
     def tags_order(self):
         if self.tagList.__contains__('!doctype html') and self.tagList[0] != '!doctype html':
@@ -304,7 +336,7 @@ class Editor(QsciScintilla):
         op_list = "({[<'\""
         cl_list = ")}]>'\""
         for i in self.text():
-            if self.tagIgnore.__len__() == 0 or self.tagIgnore.__len__() > 0 and not (self.tagIgnore[0] <= symbol <= self.tagIgnore[1]):
+            if self.tagIgnore.__len__() < 2 or self.tagIgnore.__len__() > 1 and not (self.tagIgnore[0] <= symbol <= self.tagIgnore[1]):
                 if i in op_list and not (stack and i == stack[-1] and stack[-1] in ["'",'"',"<"]):
                     stack.append(i)
                     poz.append(index)
@@ -338,7 +370,7 @@ class Editor(QsciScintilla):
                 line +=1
                 index = -1
             index +=1
-            if self.tagIgnore.__len__() > 0 and symbol == self.tagIgnore[1]:
+            if self.tagIgnore.__len__() > 1 and symbol == self.tagIgnore[1]:
                 self.tagIgnore.pop(0)
                 if self.tagIgnore:
                     self.tagIgnore.pop(0)
@@ -353,7 +385,7 @@ class Editor(QsciScintilla):
     def wspaces(self):
         stack = []
         index = 0
-        poz = -2
+        poz = -20
         line = 1
         for i in self.text():
             if i == "<":
@@ -366,8 +398,12 @@ class Editor(QsciScintilla):
                     index = -1
                 elif stack and (i ==" " or i == "\r") :
                     self.errors.append(f"Пробел после символа <, строка: {line}, индекс: {int(poz)}")
-                stack.pop() 
-            index += 1    
+                stack.pop()
+                poz = -20 
+            elif i == "\n":
+                    line += 1
+                    index = -1
+            index += 1   
     
     @property
     def current_file_changed(self):

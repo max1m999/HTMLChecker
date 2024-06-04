@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
     def fix(self):
         editor = self.tab_view.currentWidget() 
         if editor: 
+            self.errors.clear()
             editor.start_fixing()
             
     
