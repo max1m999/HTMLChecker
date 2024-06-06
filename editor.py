@@ -201,6 +201,8 @@ class Editor(QsciScintilla):
             else: 
                 break
         tmp_symbol = num_symbol
+        lin = line
+        ind = index + 1
         if symbol in op_list:
             for s in str[num_symbol+1:]:
                 if s == "\n":
@@ -212,16 +214,21 @@ class Editor(QsciScintilla):
                 tmp_symbol += 1
                 ind += 1
             tmp_symbol = num_symbol
+            lin = line
+            ind = index + 1
             for s in str[num_symbol+1:twin_num]:
                 if s == "\n":
+                    self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
+                    self.line.append(lin)
+                    self.index.append(ind) 
+                    self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     lin += 1
                     ind = -1
                 elif s == ' ':
-                    twin_num = num_symbol
-                    self.errors.append(f"Возможное место для символа {pair} - строка: {lin}, индекс: {ind}")
+                    self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     self.line.append(lin)
                     self.index.append(ind) 
-                    self.main_window.errors.addItem(f"Возможное место для символа {pair} - строка: {lin}, индекс: {ind}")
+                    self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                 tmp_symbol += 1
                 ind += 1
                 
