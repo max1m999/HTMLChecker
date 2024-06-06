@@ -31,6 +31,7 @@ class Editor(QsciScintilla):
         self.line = []
         self.index = []
         self.tagLength = []
+        self.possiblePlaces = []
         
         self.tagList = []
         self.tagStart = []
@@ -88,6 +89,7 @@ class Editor(QsciScintilla):
         self.tagStart = []
         self.tagEnd = []
         self.tagIgnore = []
+        self.possiblePlaces = []
         
         # опечатки в тегах
         self.tags_spell()
@@ -122,7 +124,7 @@ class Editor(QsciScintilla):
         if self.errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in self.errors:
-                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
+                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
                     print("errors lines: " + f"{self.line}") # delete
@@ -147,6 +149,7 @@ class Editor(QsciScintilla):
     def start_fixing(self):
         if self.errors.__len__() > 0:
             str = f"{self.errors[0]}"
+            self.main_window.errors.clear()
             match True:
                 case _ if "Ошибка в имени тега" in f"{str}": # spell
                     tagFixInd = int(self.tagStart.index((self.line[0],self.index[0])))
@@ -160,10 +163,68 @@ class Editor(QsciScintilla):
                 case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
                     pass
                 case _ if "Отсутствует парный символ" in f"{str}": # <>
-                    pass
+                    symbol =  str.split()[4].split(",")[0]
+                    self.errors.append(f"Отсутствует парный символ для {symbol}")
+                    self.line.append(-1)
+                    self.index.append(-1) 
+                    self.errors.append(f"Вставьте парный символ для {symbol} в одну из предложенных позиций:")
+                    self.line.append(-1)
+                    self.index.append(-1) 
+                    self.main_window.errors.addItem(f"Отсутствует парный символ для {symbol}")
+                    self.main_window.errors.addItem(f"Вставьте парный символ для {symbol} в одну из предложенных позиций:")
+                    self.fix_symbol_pair(self.line[0], self.index[0], symbol)
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
                     self.fix_whitespace(self.line[0], self.index[0])    
-            self.start_analysis()
+            #self.start_analysis()
+            
+    def fix_symbol_pair (self, line, index, symbol):
+        op_list = "({[<'\""
+        cl_list = ")}]>'\""
+        pair = ""
+        str = self.text()
+        lin = 1
+        ind = 0
+        num_symbol = 0
+        twin_num = 0
+        
+        if symbol in op_list:
+            pair = cl_list[op_list.index(f"{symbol}")]
+        elif symbol in cl_list:
+            pair = op_list[cl_list.index(f"{symbol}")]
+        for s in str:
+            if lin != line or ind != index:
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                num_symbol += 1
+                ind += 1
+            else: 
+                break
+        tmp_symbol = num_symbol
+        if symbol in op_list:
+            for s in str[num_symbol+1:]:
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                elif s == f"{symbol}":
+                    twin_num = tmp_symbol
+                    break
+                tmp_symbol += 1
+                ind += 1
+            tmp_symbol = num_symbol
+            for s in str[num_symbol+1:twin_num]:
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                elif s == ' ':
+                    twin_num = num_symbol
+                    self.errors.append(f"Возможное место для символа {pair} - строка: {lin}, индекс: {ind}")
+                    self.line.append(lin)
+                    self.index.append(ind) 
+                    self.main_window.errors.addItem(f"Возможное место для символа {pair} - строка: {lin}, индекс: {ind}")
+                tmp_symbol += 1
+                ind += 1
+                
             
     def fix_name (self, line, index, length, name):
         str = self.text()
@@ -235,6 +296,7 @@ class Editor(QsciScintilla):
         print("ignore : " + f"{self.tagIgnore}") # delete
         
     def tags_spell(self):
+        str = ""
         ind = 0
         index = 0
         line = 1
