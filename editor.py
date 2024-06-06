@@ -130,6 +130,8 @@ class Editor(QsciScintilla):
                     self.index.append(-1)
                 # вывод ошибок в консоль
                 self.main_window.errors.addItem(f"{i}")
+            try: self.main_window.errors.itemClicked.disconnect()
+            except Exception: pass
             self.main_window.errors.itemClicked.connect(self.set_error_pos)
         if not self.errors: self.main_window.errors.addItem("Проверка завершена. Ошибки в разметке не найдены")
         
