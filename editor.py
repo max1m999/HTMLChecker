@@ -30,6 +30,7 @@ class Editor(QsciScintilla):
         
         self.line = []
         self.index = []
+        self.tagLength = []
         
         self.tagList = []
         self.tagStart = []
@@ -82,6 +83,7 @@ class Editor(QsciScintilla):
         self.errors = []
         self.line = []
         self.index = []
+        self.tagLength = []
         self.tagList = []
         self.tagStart = []
         self.tagEnd = []
@@ -121,7 +123,6 @@ class Editor(QsciScintilla):
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in self.errors:
                 if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug")):
-                   
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
                     print("errors lines: " + f"{self.line}") # delete
@@ -148,7 +149,10 @@ class Editor(QsciScintilla):
             str = f"{self.errors[0]}"
             match True:
                 case _ if "Ошибка в имени тега" in f"{str}": # spell
-                    pass
+                    tagFixInd = int(self.tagStart.index((self.line[0],self.index[0])))
+                    length = int(self.tagLength[tagFixInd])
+                    name = self.tagList[tagFixInd]
+                    self.fix_name (self.line[0], self.index[0], length, name)
                 case _ if "Отсутствует тег" in f"{str}":  # pair
                     pass
                 case _ if "Некорректное расположение тега" in f"{str}": # structure
@@ -161,6 +165,22 @@ class Editor(QsciScintilla):
                     self.fix_whitespace(self.line[0], self.index[0])    
             self.start_analysis()
             
+    def fix_name (self, line, index, length, name):
+        str = self.text()
+        lin = 1
+        ind = 0
+        symbol = 0
+        for s in str:
+            if lin != line or ind != index:
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                symbol += 1
+                ind += 1
+            else: 
+                break
+        fixed_str = str[:symbol+1] + name + str[symbol+length+1:]
+        self.setText(fixed_str)
     
     def fix_whitespace (self, line, index):
         str = self.text()
@@ -262,7 +282,8 @@ class Editor(QsciScintilla):
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
                         print("<" + f"{current_tag}" +">") # delete
-                        break            
+                        break  
+            self.tagLength.append(len(str))
             if max_percent > 60:
                 self.tagList.append(current_tag)
                 self.tagStart.append((line,ind))
