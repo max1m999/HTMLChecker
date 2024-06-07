@@ -217,8 +217,8 @@ class Editor(QsciScintilla):
             lin = line
             ind = index + 1
             if twin_num == -1:
-                twin_num = len(str)
-            for s in str[num_symbol+1:twin_num+2]:
+                twin_num = len(str) - 1
+            for s in str[num_symbol+1:twin_num+1]:
                 if s == "\n":
                     self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     self.line.append(lin)
@@ -226,12 +226,12 @@ class Editor(QsciScintilla):
                     self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     lin += 1
                     ind = -1
-                elif s == ' ' or s == f"{symbol}":
+                elif s == ' ' or s == "\t" or s == f"{symbol}":
                     self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     self.line.append(lin)
                     self.index.append(ind) 
                     self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
-                elif ind == twin_num - 1:
+                elif tmp_symbol == twin_num - 1:
                     self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind + 1}")
                     self.line.append(lin)
                     self.index.append(ind + 1) 
@@ -239,7 +239,7 @@ class Editor(QsciScintilla):
                 tmp_symbol += 1
                 ind += 1
         elif symbol in cl_list: #CLOSE SYMBOL
-            for s in reversed(str[:num_symbol]):
+            for s in reversed(str[:num_symbol+1]):
                 if s == "\n":
                     lin -= 1
                     ind = -1
@@ -251,7 +251,9 @@ class Editor(QsciScintilla):
             tmp_symbol = num_symbol
             lin = line
             ind = index - 1
-            for s in str[num_symbol+1:twin_num+2]:
+            if twin_num == -1:
+                twin_num = 2
+            for s in str[twin_num-2:num_symbol+1]:
                 if s == "\n":
                     self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     self.line.append(lin)
@@ -259,16 +261,18 @@ class Editor(QsciScintilla):
                     self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     lin -= 1
                     ind = -1
-                elif s == ' ' or s == f"{symbol}" :
+                elif s == ' ' or s == f"{symbol}":
                     self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
                     self.line.append(lin)
                     self.index.append(ind) 
                     self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind}")
+                elif tmp_symbol == twin_num - 1:
+                    self.errors.append(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind - 1}")
+                    self.line.append(lin)
+                    self.index.append(ind - 1) 
+                    self.main_window.errors.addItem(f"Возможное место для символа {pair} : строка: {lin}, индекс: {ind - 1}")
                 tmp_symbol -= 1
-                ind -= 1
-                
-                
-                
+                ind -= 1                
             
     def fix_name (self, line, index, length, name):
         str = self.text()
