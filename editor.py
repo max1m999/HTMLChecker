@@ -93,9 +93,6 @@ class Editor(QsciScintilla):
         
         # опечатки в тегах
         self.tags_spell()
-        print(self.tagList) # delete
-        print(self.tagStart) # delete
-        print(self.tagEnd) # delete
         
         # непроверяемый текст
         self.skip_Text()
@@ -127,7 +124,6 @@ class Editor(QsciScintilla):
                 if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
-                    print("errors lines: " + f"{self.line}") # delete
                 else:
                     self.line.append(-1)
                     self.index.append(-1)
@@ -445,16 +441,9 @@ class Editor(QsciScintilla):
             if f"{i}".__contains__("/"):
                 if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}"[1:].lower())['ignore'] == '1':
                     self.tagIgnore.append(self.tagEnd[ind])
-                    print("I: /") # delete
-                    print(i) # delete
             elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['ignore'] == '1':
                self.tagIgnore.append(self.tagStart[ind])
-               print("I: ") # delete
-               print(i) # delete
             ind += 1
-        print("ORIGINAL: ") # delete
-        print(self.tagIgnore) # delete
-        print("-----") # delete
         ind = 0
         index = 0
         for i in self.tagIgnore:
@@ -469,8 +458,6 @@ class Editor(QsciScintilla):
             self.tagIgnore[index] = symbol
             str = self.text()[symbol:]
             index += 1
-        print("ignore count: " + f"{self.tagIgnore.__len__()}") # delete
-        print("ignore : " + f"{self.tagIgnore}") # delete
         
     def tags_spell(self):
         str = ""
@@ -498,7 +485,6 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("</" + f"{current_tag}" +">") # delete
                         break
                 current_tag = "/" + f"{current_tag}"
             elif match_complex:
@@ -511,7 +497,6 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("<" + f"{current_tag}" +">") # delete
                         break  
             elif match:
                 str = match.group(1)
@@ -520,16 +505,13 @@ class Editor(QsciScintilla):
                         max_percent = fuzz.ratio(str.lower(), f"{x['tag']}".lower())
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
-                        print("<" + f"{current_tag}" +">") # delete
                         break  
             self.tagLength.append(len(str))
             if max_percent > 60:
                 self.tagList.append(current_tag)
                 self.tagStart.append((line,ind))
-              #  self.errors.append(f"Debug {current_tag}, строка: {line}, индекс: {ind}") # delete
                 if max_percent < 100: 
                     self.errors.append(f"Ошибка в имени тега {current_tag}, строка: {line}, индекс: {ind}")
-                    self.errors.append(f"Debug {tok_str[index]}, строка: {line}, индекс: {ind}") # delete
             for x in tok_str[index][tok_str[index].find("<"):]:
                 if x == "\n":                 
                     ind = 0
@@ -570,17 +552,13 @@ class Editor(QsciScintilla):
         for i in self.tagList:
             if f"{i}".__contains__("/"):
                 cl_stack.append(i)
-                print("cl: " + f"{cl_stack}") # delete
             elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
                 stack.append(i)
-            print(stack) # delete
         while ind < len(stack):
             if cl_stack.__contains__("/"+f"{stack[ind]}"):
                 cl_stack.pop(cl_stack.index("/"+f"{stack[ind]}"))
                 stack.pop(ind)
             else: ind +=1  
-        print (stack)  # delete 
-        print (cl_stack)  # delete 
         while stack:
             self.errors.append(f"Отсутствует тег </{stack[-1]}>")
             stack.pop()
@@ -637,7 +615,6 @@ class Editor(QsciScintilla):
                 if self.tagIgnore:
                     self.tagIgnore.pop(0)
             symbol += 1
-        print("symbol: " + f"{symbol}") # delete
         while stack:
             self.errors.append(f"Отсутствует парный символ для {stack[-1]}, строка: {lineP[-1]}, индекс: {int(poz[-1])}") 
             stack.pop()

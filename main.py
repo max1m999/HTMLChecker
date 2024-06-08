@@ -95,7 +95,6 @@ class MainWindow(QMainWindow):
     # Загрузка таблицы с тегами    
     def loadTags(self):
         with open('C:\HTMLChecker\HTML5 tags.csv') as File:
-            #fieldnames = ['tag','necessary', 'paired', 'pair']
             reader = csv.DictReader(File, dialect="excel", delimiter=";")
             for row in reader:
                 self.tags_table.append(row)
