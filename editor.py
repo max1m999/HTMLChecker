@@ -206,7 +206,28 @@ class Editor(QsciScintilla):
                     fixed_str = self.text()[:symbol] + "\n" + "<html>" + "\n" + self.text()[symbol:]
                     self.setText(fixed_str)
                 case "head" :
-                    pass                
+                    index = - 1
+                    line = -1
+                    pos = -1
+                    if 'html' in self.tagList:
+                        pos = self.tagList.index('html')
+                    else: 
+                        pos = self.tagList.index('!doctype html')
+                    line = self.tagEnd[pos][0]
+                    index = self.tagEnd[pos][1]
+                    lin = 1
+                    ind = 0
+                    symbol = 0
+                    for s in self.text():
+                        if lin != line or ind != index:
+                            if s == "\n":
+                                lin += 1
+                                ind = -1
+                            symbol += 1
+                            ind += 1
+                        else: break
+                    fixed_str = self.text()[:symbol] + "\n" + "<head>" + "\n" + self.text()[symbol:]
+                    self.setText(fixed_str)                
                 case "title" :
                     pass
                 case "meta" :
