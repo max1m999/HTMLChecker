@@ -156,9 +156,9 @@ class Editor(QsciScintilla):
                         length += 1
                     self.fix_name (self.line[0], self.index[0], length, name)
                 case _ if "Отсутствует тег" in f"{str}":  # pair
-                    pass
+                    self.fix_missing_pair(tag)
                 case _ if "Некорректное расположение тега" in f"{str}": # structure
-                    pass
+                    self.fix_location(self.line[0], self.index[0], tag)
                 case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
                     self.fix_tags_presence()
                 case _ if "Отсутствует парный символ" in f"{str}": # <>
@@ -175,7 +175,36 @@ class Editor(QsciScintilla):
                     self.fix_symbol_pair(fix_line, fix_index, symbol)
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
                     self.fix_whitespace(self.line[0], self.index[0])    
-            #self.start_analysis()
+            # self.start_analysis() - ??????????
+        
+    def fix_location (self, line, index, tag):
+        symbol = 0
+        ind = 0
+        lin = 1
+        for s in self.text():
+            if lin != int(self.tagStart[tagInd][0]) or ind != int(self.tagStart[tagInd][1]):
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                symbol += 1
+                ind += 1
+            else: break
+        start = symbol
+        str = self.text()[symbol:]
+        if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{tag}"[1:].lower())['paired'] == '1':
+            if f'/{tag}' in self.tagList:  
+                tagInd = self.tagList.index(f'/{tag}')                
+        for s in str:
+            if lin != int(self.tagEnd[tagInd][0]) or ind != int(self.tagEnd[tagInd][1]):
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                symbol += 1
+                ind += 1
+            else: break
+        end = symbol
+        fixed_str = ""
+        self.setText(fixed_str)
     
     def fix_tags_presence (self):
             err = self.errors[0].split(":")[-1][1:]
