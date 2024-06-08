@@ -156,6 +156,8 @@ class Editor(QsciScintilla):
                     tagFixInd = int(self.tagStart.index((self.line[0],self.index[0])))
                     length = int(self.tagLength[tagFixInd])
                     name = self.tagList[tagFixInd]
+                    if "/" in f"{name}":
+                        length += 1
                     self.fix_name (self.line[0], self.index[0], length, name)
                 case _ if "Отсутствует тег" in f"{str}":  # pair
                     pass
@@ -228,14 +230,66 @@ class Editor(QsciScintilla):
                         else: break
                     fixed_str = self.text()[:symbol] + "\n" + "<head>" + "\n" + self.text()[symbol:]
                     self.setText(fixed_str)                
-                case "title" :
-                    pass
-                case "meta" :
-                    pass
-                case "body" :
-                    pass
-
-            
+                case "title" :#################################################
+                    index = - 1
+                    line = -1
+                    pos = -1
+                    pos = self.tagList.index('head')
+                    line = self.tagEnd[pos][0]
+                    index = self.tagEnd[pos][1]
+                    lin = 1
+                    ind = 0
+                    symbol = 0
+                    for s in self.text():
+                        if lin != line or ind != index:
+                            if s == "\n":
+                                lin += 1
+                                ind = -1
+                            symbol += 1
+                            ind += 1
+                        else: break
+                    fixed_str = self.text()[:symbol] + "\n" + "<title>" + "\n" + self.text()[symbol:]
+                    self.setText(fixed_str) 
+                case "meta" :##############################################
+                    index = - 1
+                    line = -1
+                    pos = -1
+                    pos = self.tagList.index('head')
+                    line = self.tagEnd[pos][0]
+                    index = self.tagEnd[pos][1]
+                    lin = 1
+                    ind = 0
+                    symbol = 0
+                    for s in self.text():
+                        if lin != line or ind != index:
+                            if s == "\n":
+                                lin += 1
+                                ind = -1
+                            symbol += 1
+                            ind += 1
+                        else: break
+                    fixed_str = self.text()[:symbol] + "\n" + '<meta charset="UTF-8">' + "\n" + self.text()[symbol:]
+                    self.setText(fixed_str) 
+                case "body" :####################################################
+                    index = - 1
+                    line = -1
+                    pos = -1
+                    pos = self.tagList.index('/head')
+                    line = self.tagEnd[pos][0]
+                    index = self.tagEnd[pos][1]
+                    lin = 1
+                    ind = 0
+                    symbol = 0
+                    for s in self.text():
+                        if lin != line or ind != index:
+                            if s == "\n":
+                                lin += 1
+                                ind = -1
+                            symbol += 1
+                            ind += 1
+                        else: break
+                    fixed_str = self.text()[:symbol] + "\n" + '<body>' + "\n" + self.text()[symbol:]
+                    self.setText(fixed_str) 
             
     def fix_symbol_pair (self, line, index, symbol):
         op_list = "({[<'\""
