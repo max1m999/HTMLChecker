@@ -85,9 +85,11 @@ class MainWindow(QMainWindow):
         service_menu = menu_bar.addMenu("Сервис")
         
         analysis_action = service_menu.addAction("Анализ файла")
+        analysis_action.setShortcut("F5")
         analysis_action.triggered.connect(self.analysis)
         
         fix_action = service_menu.addAction("Восстановить файл")
+        fix_action.setShortcut("F10")
         fix_action.triggered.connect(self.fix)
     
     # Загрузка таблицы с тегами    
