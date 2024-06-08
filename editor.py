@@ -162,7 +162,7 @@ class Editor(QsciScintilla):
                 case _ if "Некорректное расположение тега" in f"{str}": # structure
                     pass
                 case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
-                    pass
+                    self.fix_tags_presence()
                 case _ if "Отсутствует парный символ" in f"{str}": # <>
                     symbol =  str.split()[4].split(",")[0]
                     fix_line = self.line[0]
@@ -178,6 +178,43 @@ class Editor(QsciScintilla):
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
                     self.fix_whitespace(self.line[0], self.index[0])    
             #self.start_analysis()
+    
+    def fix_tags_presence (self):
+            err = self.errors[0].split(":")[-1][1:]
+            match f"{err}":
+                case "!DOCTYPE html" :
+                    fixed_str = "<!DOCTYPE html>" + "\n" + self.text()
+                    self.setText(fixed_str)
+                case "html" :
+                    index = - 1
+                    line = -1
+                    pos = -1
+                    pos = self.tagList.index('!doctype html')
+                    line = self.tagEnd[pos][0]
+                    index = self.tagEnd[pos][1]
+                    lin = 1
+                    ind = 0
+                    symbol = 0
+                    for s in self.text():
+                        if lin != line or ind != index:
+                            if s == "\n":
+                                lin += 1
+                                ind = -1
+                            symbol += 1
+                            ind += 1
+                        else: break
+                    fixed_str = self.text()[:symbol] + "\n" + "<html>" + "\n" + self.text()[symbol:]
+                    self.setText(fixed_str)
+                case "head" :
+                    pass                
+                case "title" :
+                    pass
+                case "meta" :
+                    pass
+                case "body" :
+                    pass
+
+            
             
     def fix_symbol_pair (self, line, index, symbol):
         op_list = "({[<'\""
@@ -423,7 +460,7 @@ class Editor(QsciScintilla):
         for x in self.main_window.tags_table:
             if x['necessary'] == '1':
                 if self.tagList.__contains__(f"{x['tag']}".lower()) == False:
-                    self.errors.append(f"Отсутствует обязательный тег {x['tag']}")                
+                    self.errors.append(f"Отсутствует обязательный тег: {x['tag']}")                
     
     def tags_order(self):
         if self.tagList.__contains__('!doctype html') and self.tagList[0] != '!doctype html':
