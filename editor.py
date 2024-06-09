@@ -121,7 +121,7 @@ class Editor(QsciScintilla):
         if self.errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in self.errors:
-                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
+                if not (f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
                 else:
@@ -156,7 +156,15 @@ class Editor(QsciScintilla):
                         length += 1
                     self.fix_name (self.line[0], self.index[0], length, name)
                 case _ if "Отсутствует тег" in f"{str}":  # pair
-                    self.fix_missing_pair(tag)
+                    tag = f"{str}".split("<")[-1].split(">")[0]
+                    self.line = []
+                    self.index = []
+                    self.errors = []
+                    self.errors.append(f"Отсутствует тег {tag}")
+                    self.errors.append(f"Вставьте тег для {tag} в одну из предложенных позиций:")
+                    self.main_window.errors.addItem(f"Отсутствует тег для {tag}")
+                    self.main_window.errors.addItem(f"Вставьте тег для {tag} в одну из предложенных позиций:")
+                    self.fix_missing_tags_pair(tag)
                 case _ if "Некорректное расположение тега" in f"{str}": # structure
                     self.fix_location(f"{str}".split("<")[-1].split(">")[0])
                 case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
@@ -176,6 +184,43 @@ class Editor(QsciScintilla):
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
                     self.fix_whitespace(self.line[0], self.index[0])    
         self.start_analysis()
+    
+    def fix_missing_tags_pair (self, tag):
+        pair = ""
+        lin = 1
+        ind = 0
+        allTags = [] 
+        if tag == '/html':
+            self.setText(self.text() + "/n" + '/html')
+        elif tag == '/title':
+            self.setText(self.text()[:self.tagStart[self.tagList.index('title')+ 1]] + '/title' + self.text()[self.tagStart[self.tagList.index('title')+ 1]:])
+        elif tag == '/head':
+            self.setText(self.text()[:self.tagStart[self.tagList.index('body')]] + '/head' + self.text()[self.tagStart[self.tagList.index('body')]:])
+        elif tag == '/body':
+            self.setText(self.text()[:self.tagStart[self.tagList.index('/html')]] + '/body' + self.text()[self.tagStart[self.tagList.index('/html')]:])
+        else:
+            if '/' in f"{tag}":
+                pair = f"{tag}"[1:]
+            else:
+                pair = '/' + f"{tag}"
+            for t in self.tagList:
+                if '/'+f"{t}" in self.tagList or t == pair or '/' in t:
+                    allTags.append(t)    
+            for t in reversed(allTags[:allTags.index(pair)]):
+                if f"{t}" in ['body', 'head']:
+                    allTags = allTags[allTags.index(t)+1:allTags.index(f"/{t}")]
+                    break
+            for t in allTags:
+                if '/' in f"{pair}":
+                    pass
+                else:
+                    pass
+            # self.errors.append(f"Возможное место для тега {tag} : строка: {lin}, индекс: {ind}")
+            # self.line.append(lin)
+            # self.index.append(ind) 
+            # self.main_window.errors.addItem(f"Возможное место для тега {tag} : строка: {lin}, индекс: {ind}")
+                
+ 
         
     def fix_location (self, tag):
         symbol = 0
@@ -628,24 +673,34 @@ class Editor(QsciScintilla):
     
     def tags_pair(self):
         stack = []
+        poz_stack = []
         cl_stack = []
+        poz_cl_stack = []
         ind = 0
+        count = 0
         for i in self.tagList:
             if f"{i}".__contains__("/"):
                 cl_stack.append(i)
+                poz_cl_stack.append((self.tagStart[count][0], self.tagStart[count][1]))
             elif next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{i}".lower())['paired'] == '1':
                 stack.append(i)
+                poz_stack.append((self.tagStart[count][0], self.tagStart[count][1]))
+            count += 1
         while ind < len(stack):
             if cl_stack.__contains__("/"+f"{stack[ind]}"):
+                poz_cl_stack.pop(cl_stack.index("/"+f"{stack[ind]}"))
                 cl_stack.pop(cl_stack.index("/"+f"{stack[ind]}"))
                 stack.pop(ind)
+                poz_stack.pop(ind)
             else: ind +=1  
         while stack:
-            self.errors.append(f"Отсутствует тег </{stack[-1]}>")
+            self.errors.append(f"Отсутствует тег </{stack[-1]}>, строка: {poz_stack[-1][0]}, индекс: {poz_stack[-1][1]}")
             stack.pop()
+            poz_stack.pop()
         while cl_stack:
-            self.errors.append(f"Отсутствует тег <{cl_stack[-1][1:]}>")
+            self.errors.append(f"Отсутствует тег <{cl_stack[-1][1:]}>, строка: {poz_cl_stack[-1][0]}, индекс: {poz_cl_stack[-1][1]}")
             cl_stack.pop()
+            poz_cl_stack.pop()
     
     def brackets_matching(self):
         stack = []
