@@ -121,7 +121,7 @@ class Editor(QsciScintilla):
         if self.errors: 
             self.main_window.errors.addItem("Нажмите на сообщение в консоли, чтобы перейти к месту ошибки:")
             for i in self.errors:
-                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Некорректное") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
+                if not (f"{i}".__contains__("Отсутствует тег") or f"{i}".__contains__("Отсутствует обязательный тег") or f"{i}".__contains__("Debug") or f"{i}".__contains__("Вставьте")):
                     self.line.append(int((f"{i}".split(":")[-2]).split(",")[-2]))
                     self.index.append(int(f"{i}".split(":")[-1])) 
                 else:
@@ -158,7 +158,7 @@ class Editor(QsciScintilla):
                 case _ if "Отсутствует тег" in f"{str}":  # pair
                     self.fix_missing_pair(tag)
                 case _ if "Некорректное расположение тега" in f"{str}": # structure
-                    self.fix_location(self.line[0], self.index[0], tag)
+                    self.fix_location(f"{str}".split("<")[-1].split(">")[0])
                 case _ if "Отсутствует обязательный тег" in f"{str}": # <html> missing
                     self.fix_tags_presence()
                 case _ if "Отсутствует парный символ" in f"{str}": # <>
@@ -175,12 +175,13 @@ class Editor(QsciScintilla):
                     self.fix_symbol_pair(fix_line, fix_index, symbol)
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
                     self.fix_whitespace(self.line[0], self.index[0])    
-            # self.start_analysis() - ??????????
+        self.start_analysis()
         
-    def fix_location (self, line, index, tag):
+    def fix_location (self, tag):
         symbol = 0
         ind = 0
         lin = 1
+        tagInd = self.tagList.index(f'{tag}')   
         for s in self.text():
             if lin != int(self.tagStart[tagInd][0]) or ind != int(self.tagStart[tagInd][1]):
                 if s == "\n":
@@ -191,9 +192,14 @@ class Editor(QsciScintilla):
             else: break
         start = symbol
         str = self.text()[symbol:]
-        if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{tag}"[1:].lower())['paired'] == '1':
-            if f'/{tag}' in self.tagList:  
-                tagInd = self.tagList.index(f'/{tag}')                
+        if next(item for item in self.main_window.tags_table if f"{item['tag']}".lower() == f"{tag}".lower())['paired'] == '1':
+            if f'/{tag}' in self.tagList:
+                if self.tagList.index(f'/{tag}')  == tagInd + 1:
+                  tagInd += 1             
+                elif tag == 'head' and self.tagList[tagInd:self.tagList.index(f'/{tag}')] and not any(tagg in self.tagList[tagInd:self.tagList.index(f'/{tag}')] for tagg in ['!doctype html','html', 'body', '/html', '/body']):
+                    tagInd = self.tagList.index(f'/{tag}')
+                elif tag == 'body' and self.tagList[tagInd:self.tagList.index(f'/{tag}')] and not any(tagg in self.tagList[tagInd:self.tagList.index(f'/{tag}')] for tagg in ['!doctype html','html', 'head', '/html', '/head']):
+                    tagInd = self.tagList.index(f'/{tag}')
         for s in str:
             if lin != int(self.tagEnd[tagInd][0]) or ind != int(self.tagEnd[tagInd][1]):
                 if s == "\n":
@@ -203,8 +209,36 @@ class Editor(QsciScintilla):
                 ind += 1
             else: break
         end = symbol
-        fixed_str = ""
+       
+        if tag == '!doctype html':
+            fixed_str = self.text()[start:end] + self.text() [:start] + self.text()[end:]
+        elif tag == 'html':
+            fixed_str = self.text()[:self.getSymbolIndex(self.tagList.index('!doctype html'))] +self.text()[start:end] + self.text()[self.getSymbolIndex(self.tagList.index('!doctype html')):start] + self.text()[end:]
+        elif tag == 'head': 
+            fixed_str = self.text()[:self.getSymbolIndex(self.tagList.index('html'))]  + self.text()[start:end] + self.text()[self.getSymbolIndex(self.tagList.index('html')):start] + self.text()[end:]
+        elif tag == 'meta':
+            fixed_str = self.text()[:self.getSymbolIndex(self.tagList.index('head'))]  + self.text()[start:end] + self.text()[self.getSymbolIndex(self.tagList.index('head')):start] + self.text()[end:]
+        elif tag == 'title':
+            fixed_str = self.text()[:self.getSymbolIndex(self.tagList.index('meta'))]  + self.text()[start:end] + self.text()[self.getSymbolIndex(self.tagList.index('meta')):start] + self.text()[end:]
+        elif tag == 'body': 
+            body_str = self.text()[start:end]
+            self.setText(self.text().replace(body_str, ''))
+            fixed_str = self.text()[:self.text().find("</head>") + 7] + body_str + self.text()[self.text().find("</head>") + 7:]
         self.setText(fixed_str)
+    
+    def getSymbolIndex(self, tagInd):
+        lin = 1
+        ind = 0
+        index = 0
+        for s in self.text():
+            if lin != int(self.tagEnd[tagInd][0]) or ind != int(self.tagEnd[tagInd][1]):
+                if s == "\n":
+                    lin += 1
+                    ind = -1
+                index += 1
+                ind += 1
+            else: break
+        return index
     
     def fix_tags_presence (self):
             err = self.errors[0].split(":")[-1][1:]
@@ -560,19 +594,37 @@ class Editor(QsciScintilla):
     
     def tags_order(self):
         if self.tagList.__contains__('!doctype html') and self.tagList[0] != '!doctype html':
-            self.errors.append("Некорректное расположение тега <!doctype html>")
+            tagInd = self.tagList.index('!doctype html')
+            lin = self.tagStart[tagInd][0]   
+            ind = self.tagStart[tagInd][1]  
+            self.errors.append(f"Некорректное расположение тега <!doctype html>: строка: {lin}, индекс: {ind}")
         if self.tagList.__contains__('html') and self.tagList[1] != 'html':
-            self.errors.append("Некорректное расположение тега <html>")
+            tagInd = self.tagList.index('html') 
+            lin = self.tagStart[tagInd][0]   
+            ind = self.tagStart[tagInd][1] 
+            self.errors.append(f"Некорректное расположение тега <html>: строка: {lin}, индекс: {ind}")
         if self.tagList.__contains__('head'):
             if self.tagList[2] != 'head':
-                self.errors.append("Некорректное расположение тега <head>")
+                tagInd = self.tagList.index('head')
+                lin = self.tagStart[tagInd][0]   
+                ind = self.tagStart[tagInd][1] 
+                self.errors.append(f"Некорректное расположение тега <head>: строка: {lin}, индекс: {ind}")
             if self.tagList.__contains__('/head'):
                 if self.tagList.__contains__('meta') and not (self.tagList.index('head') < self.tagList.index('meta') and self.tagList.index('meta') < self.tagList.index('/head')):
-                    self.errors.append("Некорректное расположение тега <meta>")
+                    tagInd = self.tagList.index('meta')
+                    lin = self.tagStart[tagInd][0]   
+                    ind = self.tagStart[tagInd][1] 
+                    self.errors.append(f"Некорректное расположение тега <meta>: строка: {lin}, индекс: {ind}")
                 if self.tagList.__contains__('title') and not (self.tagList.index('head') < self.tagList.index('title') and self.tagList.index('title') < self.tagList.index('/head')):
-                    self.errors.append("Некорректное расположение тега <title>")    
-                if self.tagList.__contains__('body') and not (self.tagList.index('/head') < self.tagList.index('body')):
-                    self.errors.append("Некорректное расположение тега <body>")            
+                    tagInd = self.tagList.index('title')
+                    lin = self.tagStart[tagInd][0]   
+                    ind = self.tagStart[tagInd][1] 
+                    self.errors.append(f"Некорректное расположение тега <title>: строка: {lin}, индекс: {ind}")    
+                if self.tagList.__contains__('body') and not (self.tagList.index('/head') < self.tagList.index('body') and self.tagList.index('/html') > self.tagList.index('body')):
+                    tagInd = self.tagList.index('body')
+                    lin = self.tagStart[tagInd][0]   
+                    ind = self.tagStart[tagInd][1] 
+                    self.errors.append(f"Некорректное расположение тега <body>: строка: {lin}, индекс: {ind}")            
     
     def tags_pair(self):
         stack = []
