@@ -212,7 +212,7 @@ class Editor(QsciScintilla):
                 currInd +=1  
             currInd = allTags[:allInd].__len__() - 1 
             for t in reversed(allTags[:allInd]):
-                if f"{t}" in ['body', 'head']:
+                if f"{t}" in ['body', 'head', 'section']:
                     allPoz = allPoz[currInd+1:allTags.index(f"/{t}")]
                     allTags = allTags[currInd+1:allTags.index(f"/{t}")]
                     break

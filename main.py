@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         self.app_name = "HTML МАСТЕР"
         self.setWindowTitle(self.app_name)
         self.resize(1300,900)
-        self.setStyleSheet(open ("C://HTMLChecker/css/style.qss", "r").read())
+        self.setStyleSheet(open ("_internal\css\style.qss", "r").read())
         # Шрифт интерфейса
         self.window_font = QFont("FiraCode", 16)
         self.setFont(self.window_font)
@@ -94,7 +94,7 @@ class MainWindow(QMainWindow):
     
     # Загрузка таблицы с тегами    
     def loadTags(self):
-        with open('C:\HTMLChecker\HTML5 tags.csv') as File:
+        with open('_internal\HTML5 tags.csv') as File:
             reader = csv.DictReader(File, dialect="excel", delimiter=";")
             for row in reader:
                 self.tags_table.append(row)
