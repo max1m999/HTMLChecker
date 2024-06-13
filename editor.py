@@ -183,7 +183,7 @@ class Editor(QsciScintilla):
                     self.main_window.errors.addItem(f"Вставьте парный символ для {symbol} в одну из предложенных позиций:")
                     self.fix_symbol_pair(fix_line, fix_index, symbol)
                 case _ if "Пробел после символа" in f"{str}": # <_abc...
-                    self.fix_whitespace(self.line[0], self.index[0])    
+                    self.fix_whitespace(self.line[0], self.index[0]) 
     
     def fix_missing_tags_pair (self, tag, tagIndex):
         pair = ""
@@ -193,12 +193,6 @@ class Editor(QsciScintilla):
         allInd = -1
         if tag == '/html':
             self.setText(self.text() + "/n" + '/html')
-        elif tag == '/title':
-            self.setText(self.text()[:self.tagStart[self.tagList.index('title')+ 1]] + '/title' + self.text()[self.tagStart[self.tagList.index('title')+ 1]:])
-        elif tag == '/head':
-            self.setText(self.text()[:self.tagStart[self.tagList.index('body')]] + '/head' + self.text()[self.tagStart[self.tagList.index('body')]:])
-        elif tag == '/body':
-            self.setText(self.text()[:self.tagStart[self.tagList.index('/html')]] + '/body' + self.text()[self.tagStart[self.tagList.index('/html')]:])
         else:
             if '/' in f"{tag}":
                 pair = f"{tag}"[1:]
@@ -212,7 +206,7 @@ class Editor(QsciScintilla):
                 currInd +=1  
             currInd = allTags[:allInd].__len__() - 1 
             for t in reversed(allTags[:allInd]):
-                if f"{t}" in ['body', 'head', 'section']:
+                if f"{t}" in ['html','body', 'head', 'section']:
                     allPoz = allPoz[currInd+1:allTags.index(f"/{t}")]
                     allTags = allTags[currInd+1:allTags.index(f"/{t}")]
                     break
@@ -251,7 +245,7 @@ class Editor(QsciScintilla):
                         self.line.append(allPoz[currInd][0])
                         self.index.append(allPoz[currInd][1]) 
                         self.main_window.errors.addItem(f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}")
-                    elif (allPoz[currInd] == self.tagStart[tagIndex] or '/' in f"{t}" and currInd == allTags.__len__() - 1) and not f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}" in self.errors:
+                    elif ('/' in f"{t}") and not f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}" in self.errors:
                         self.errors.append(f"Возможное место для тега <{tag}> : строка: {self.tagEnd[self.tagStart.index(allPoz[currInd])][0]}, индекс: {self.tagEnd[self.tagStart.index(allPoz[currInd])][1]}")
                         self.line.append(self.tagEnd[self.tagStart.index(allPoz[currInd])][0])
                         self.index.append(self.tagEnd[self.tagStart.index(allPoz[currInd])][1]) 
