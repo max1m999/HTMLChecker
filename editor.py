@@ -7,9 +7,6 @@ from fuzzywuzzy import fuzz
 
 import re
 
-import keyword
-import pkgutil
-
 from typing import TYPE_CHECKING 
 
 if TYPE_CHECKING:
