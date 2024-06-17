@@ -201,8 +201,8 @@ class Editor(QsciScintilla):
             currInd = allTags[:allInd].__len__() - 1 
             for t in reversed(allTags[:allInd]):
                 if currInd < tagIndex and  f"/{t}" in self.tagList and self.tagList.index(f"/{t}") > tagIndex:
-                    allPoz = allPoz[currInd:self.tagList.index(f"/{t}")]
-                    allTags = allTags[currInd:self.tagList.index(f"/{t}")]
+                    allPoz = allPoz[currInd+1:self.tagList.index(f"/{t}")]
+                    allTags = allTags[currInd+1:self.tagList.index(f"/{t}")]
                     break
                 currInd -= 1
             currInd = 0
@@ -215,11 +215,11 @@ class Editor(QsciScintilla):
                     currInd+=1
                 currInd = 0
                 for t in allTags[:s+1]:
-                    if not '/' in f"{t}" and not f"Возможное место для тега <{tag}> : строка: {self.tagEnd[self.tagStart.index(allPoz[currInd])][0]}, индекс: {self.tagEnd[self.tagStart.index(allPoz[currInd])][1]}" in self.errors:
-                        self.errors.append(f"Возможное место для тега <{tag}> : строка: {self.tagEnd[self.tagStart.index(allPoz[currInd])][0]}, индекс: {self.tagEnd[self.tagStart.index(allPoz[currInd])][1]}")
-                        self.line.append(self.tagEnd[self.tagStart.index(allPoz[currInd])][0])
-                        self.index.append(self.tagEnd[self.tagStart.index(allPoz[currInd])][1]) 
-                        self.main_window.errors.addItem(f"Возможное место для тега <{tag}> : строка: {self.tagEnd[self.tagStart.index(allPoz[currInd])][0]}, индекс: {self.tagEnd[self.tagStart.index(allPoz[currInd])][1]}")
+                    if not '/' in f"{t}" and not f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}" in self.errors:
+                        self.errors.append(f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}")
+                        self.line.append(allPoz[currInd][0])
+                        self.index.append(allPoz[currInd][1]) 
+                        self.main_window.errors.addItem(f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}")
                     elif allPoz[currInd] == self.tagStart[tagIndex] and not f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}" in self.errors:
                         self.errors.append(f"Возможное место для тега <{tag}> : строка: {allPoz[currInd][0]}, индекс: {allPoz[currInd][1]}")
                         self.line.append(allPoz[currInd][0])
