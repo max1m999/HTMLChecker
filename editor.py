@@ -88,9 +88,6 @@ class Editor(QsciScintilla):
         self.tagIgnore = []
         self.possiblePlaces = []
         
-        # опечатки в тегах
-        self.tags_spell()
-        
         # непроверяемый текст
         self.skip_Text()
         
@@ -99,7 +96,10 @@ class Editor(QsciScintilla):
         
         # пробелы после <
         self.wspaces()
-        if not self.errors:
+        if not self.errors:        
+            # опечатки в тегах
+            self.tags_spell()
+            
             # наличие необходимых тегов
             self.tags_presence()
             
@@ -548,7 +548,22 @@ class Editor(QsciScintilla):
                 ind += 1
             else: 
                 break
-        fixed_str = str[:symbol+1] + name + str[symbol+length+1:]
+        if name == '!-- --':
+            fixed_str = str[:symbol+1] + '!--'
+            symbol+=1
+            for s in str[symbol:]:
+                if s not in ['!','-']:
+                    break
+                symbol+=1
+            comment = ""
+            while str[symbol] != '-':
+                comment+=str[symbol]
+                symbol+=1
+            while str[symbol] != '>':
+                symbol+=1
+            fixed_str +=comment+ '--' + str[symbol:]
+        else:
+            fixed_str = str[:symbol+1] + name + str[symbol+length+1:]
         self.setText(fixed_str)
     
     def fix_whitespace (self, line, index):
@@ -641,7 +656,10 @@ class Editor(QsciScintilla):
                         current_tag = f"{x['tag']}".lower()
                     if max_percent == 100:
                         break  
-            self.tagLength.append(len(str))
+            if current_tag == '!-- --':
+                self.tagLength.append(len(match_complex.group(0)))
+            else:
+                self.tagLength.append(len(str))
             if max_percent > 60:
                 self.tagList.append(current_tag)
                 self.tagStart.append((line,ind))
